@@ -7,9 +7,12 @@
 
 This game aims to be a pseudo remake of the Final Fantasy V Rom Hack Ancient Cave. The basic idea is a Final Fantasy inspired rogue-esque game.
 
-### Install
+# Install
 To pull down packages:
 `npm install`
 
 To compile code:
 `gulp`
+
+# Running
+You will need to serve index.html from the root directory after compiling.
