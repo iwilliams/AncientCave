@@ -4,3 +4,5 @@
 /  _  \ | | | (__| |  __/ | | | |_  / /__| (_| |\ V /  __/
 \_/ \_/_| |_|\___|_|\___|_| |_|\__| \____/\__,_| \_/ \___|
 ```
+
+This game aims to be a pseudo remake of the Final Fantasy V Rom Hack Ancient Cave. The basic idea is a Final Fantasy inspired rogue-esque game.
