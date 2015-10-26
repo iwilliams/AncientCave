@@ -1,9 +1,10 @@
-import Logger from './Logger';
-import Player from '../models/Player';
-import Room   from '../models/Room';
-import Ui     from '../models/Ui';
-import Utils  from './Utils';
-import Config from '../../Config';
+import Logger  from './Logger';
+import Player  from '../models/Player';
+import Monster from '../models/Monster';
+import Room    from '../models/Room';
+import Ui      from '../models/Ui';
+import Utils   from './Utils';
+import Config  from '../../Config';
 
 export default class {
     constructor(element) {
@@ -27,6 +28,8 @@ export default class {
         });
 
         this.ui.render(this._ctx);
+
+        this.necro.render(this._ctx);
 
         this.frame = this.frame ? 0 : 1;
 
@@ -80,12 +83,27 @@ export default class {
             //}
         //}
 
-        // Don't need all those guys right now
-        let p = new Player(0, 0);
-        players.push(p);
-        playerPromises.push(p.init());
+        // Create 4 players
+        let p1 = new Player(13, 3);
+        players.push(p1);
+        let p2 = new Player(14, 4);
+        players.push(p2);
+        let p3 = new Player(13, 5);
+        players.push(p3);
+        let p4 = new Player(14, 6);
+        players.push(p4);
+
+        // Init all players
+        playerPromises.push(p1.init());
+        playerPromises.push(p2.init());
+        playerPromises.push(p3.init());
+        playerPromises.push(p4.init());
 
         this.players = new Set(players);
+
+        //// Add a baddie
+        this.necro = new Monster(1, 1);
+        playerPromises.push(this.necro.init());
 
         // Initialize UI
         this.ui = new Ui();

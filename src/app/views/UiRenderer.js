@@ -20,7 +20,14 @@ export default class extends Renderer {
 
     render(ctx) {
         let patern = ctx.createPattern(this.image, "repeat");
+        ctx.strokeStyle="#FFF";
         ctx.rect(...[
+                0,
+                Config.SPRITE_SIZE*Config.SPRITE_SCALE*(Config.TILE_Y-this._tileHeight), // Ancor to bottom
+                Config.CANVAS_WIDTH,
+                Config.SPRITE_SIZE*Config.SPRITE_SCALE*this._tileHeight
+            ]);
+        ctx.strokeRect(...[
                 0,
                 Config.SPRITE_SIZE*Config.SPRITE_SCALE*(Config.TILE_Y-this._tileHeight), // Ancor to bottom
                 Config.CANVAS_WIDTH,
