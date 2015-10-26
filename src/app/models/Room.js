@@ -1,13 +1,14 @@
-import UiRenderer from '../views/UiRenderer';
+import RoomRenderer from '../views/RoomRenderer';
 
 export default class {
+
     constructor() {
-        this.bg = '/dist/resources/images/ui-bg.png';
+        this.roomBgResource = '/dist/resources/images/ffv-bg.png';
     }
 
     init() {
         return new Promise((res, rej) => {
-            this.renderer = new UiRenderer(this);
+            this.renderer = new RoomRenderer(this);
             this.renderer.init()
                 .then(res);
         });

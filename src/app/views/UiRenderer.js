@@ -5,6 +5,7 @@ export default class extends Renderer {
     constructor(ui) {
         super();
         this._uiBg = ui.bg;
+        this._tileHeight = 2;
     }
 
     init() {
@@ -19,7 +20,12 @@ export default class extends Renderer {
 
     render(ctx) {
         let patern = ctx.createPattern(this.image, "repeat");
-        ctx.rect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
+        ctx.rect(...[
+                0,
+                Config.SPRITE_SIZE*Config.SPRITE_SCALE*(Config.TILE_Y-this._tileHeight), // Ancor to bottom
+                Config.CANVAS_WIDTH,
+                Config.SPRITE_SIZE*Config.SPRITE_SCALE*this._tileHeight
+            ]);
         ctx.fillStyle = patern;
         ctx.fill();
     }
