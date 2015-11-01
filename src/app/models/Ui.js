@@ -1,6 +1,7 @@
 import UiRenderer from '../views/UiRenderer';
+import BaseObject from './BaseObject'; // Can't call this Object b/c of conflict xD
 
-export default class {
+export default class extends BaseObject {
     /**
      * Creates a UI window
      *
@@ -10,6 +11,7 @@ export default class {
      * @param offsetY - % Y offset
      */
     constructor(width, height, offsetX, offsetY) {
+        super();
         this.bg      = '/dist/resources/images/ui-bg.png';
         this.width   = width;
         this.height  = height;

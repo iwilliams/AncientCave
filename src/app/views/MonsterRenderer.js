@@ -9,7 +9,6 @@ export default class extends SpriteRenderer {
     }
 
     render(ctx, frame) {
-
         ctx.drawImage(...[
             this.image,
             0,

@@ -17,7 +17,4 @@ export default class extends Renderer {
             this.image.src = this._spriteResource;
         });
     }
-
-    render(ctx, frame) {
-    }
 }

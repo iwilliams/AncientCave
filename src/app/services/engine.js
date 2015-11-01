@@ -22,21 +22,13 @@ export default class {
         this._ctx.fillStyle = "#000";
         this._ctx.fillRect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
 
-        this.room.render(this._ctx, this.frame);
-
-        this.players.forEach((player)=>{
+        this.objects.forEach((object)=>{
             this._ctx.save();
-            player.render(this._ctx, this.frame);
+            object.tick();
+            object.render(this._ctx, this.frame);
             this._ctx.restore();
         });
 
-        this._ctx.save();
-        this.necro.render(this._ctx, this.frame);
-        this._ctx.restore();
-
-        this._ctx.save();
-        this.ui.render(this._ctx, this.frame);
-        this._ctx.restore();
         this.frame++;
 
         setTimeout(()=>{
@@ -112,14 +104,18 @@ export default class {
         //// Add a baddie
         this.necro = new Monster(1, 1);
         playerPromises.push(this.necro.init());
+        this.necro.hide();
 
         // Initialize UI
         this.ui = new BattleUi(0, 0, 0, 0, players, players);
         playerPromises.push(this.ui.init());
 
         // Initialize Room
-        this.room = new Room(Room.TYPE_OUTSIDE);
+        this.room = new Room(Room.TYPE_OUTSIDE, [this.necro], this.players);
         playerPromises.push(this.room.init());
+
+        // Create all objects
+        this.objects = [this.room, ...this.players, this.necro, this.ui];
 
 
         Promise.all(playerPromises).then(()=>{
@@ -127,14 +123,9 @@ export default class {
         });
 
         // Attach input listeners
+        // using https://dmauro.github.io/Keypress/
         this.listener = new window.keypress.Listener();
-
-        this.listener.simple_combo("t", ()=>{
-            this.room.isMoving = !this.room.isMoving;
-            this.players.forEach((player)=>{
-                player.isWalking = !player.isWalking;
-            });
-        });
+        this.attachInput(this.listener);
 
 
         // Attach resize event
@@ -145,5 +136,35 @@ export default class {
         document.getElementsByTagName("button")[0].addEventListener("click", this.requestFullscreen.bind(this));
 
         Logger.banner('Game Started');
+    }
+
+    attachInput(listener) {
+
+        listener.register_combo({
+            "keys"              : "a",
+            "on_keydown"        : this.room.lookForTrouble,
+            "on_keyup"          : this.room.stopLooking,
+            "on_release"        : null,
+            "this"              : this.room,
+            "prevent_default"   : false,
+            "prevent_repeat"    : true,
+            "is_unordered"      : false,
+            "is_counting"       : false,
+            "is_exclusive"      : false,
+            "is_solitary"       : false,
+            "is_sequence"       : false
+        });
+
+
+        listener.simple_combo("t", ()=>{
+            // Toggle walking and battle
+            if(!this.room.isBattle) {
+                this.room.lookForTrouble();
+            } else {
+                this.room.endBattle();
+                this.room.lookForTrouble();
+            }
+            //this.necro.toggle();
+        });
     }
 }
