@@ -12,7 +12,7 @@ export default class extends SpriteRenderer {
         this.frame = (frame < Config.FPS/2) ? 0 : 1;
         ctx.drawImage(...[
                 this.image,
-                this.object.isWalking ? Config.SPRITE_SIZE*(this.frame * 2) : 0, // DX
+                this.object.isWalking ? Config.SPRITE_SIZE*(this.frame) : 0, // DX
                 0, // DY
                 Config.SPRITE_SIZE, // dWidth
                 Config.SPRITE_SIZE, // dHeight

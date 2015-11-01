@@ -8,7 +8,7 @@ export default class extends BaseObject {
         this.name = name;
 
         // Define the Spirte Associated with the Player
-        this.spriteResource = '/dist/resources/images/spritesheet.png';
+        this.spriteResource = '/dist/resources/images/clairvoyant-sheet.png';
         //this.spriteResource = '/dist/resources/images/astrologist.png';
 
         this.isWalking = false;

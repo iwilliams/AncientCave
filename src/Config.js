@@ -3,6 +3,8 @@ let config = {};
  * Should be set up to recalculate on the fly when things chagne.
  * Not working right at all for window size chagnes.
  */
+config.API_KEY = "xahxx0yuy5le4s4i";
+
 config.calculate = function() {
     config.PERCENTAGE = .90;
 
@@ -25,7 +27,7 @@ config.calculate = function() {
     config.SPRITE_SIZE   = 24;
     config.SPRITE_SCALE  = config.CANVAS_WIDTH/(config.TILE_X*config.SPRITE_SIZE);
 
-    config.FPS = 10;
+    config.FPS = 30;
 }
 
 config.calculate();
