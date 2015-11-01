@@ -16,24 +16,41 @@ export default class {
         this._canvas.height = Config.CANVAS_HEIGHT;
     }
 
+    // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe/
     loop() {
-        this.frame = this.frame || 1;
-        this.frame = (this.frame%Config.FPS) ? this.frame : 1;
-        this._ctx.fillStyle = "#000";
-        this._ctx.fillRect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
+        requestAnimationFrame(this.loop.bind(this));
 
-        this.objects.forEach((object)=>{
-            this._ctx.save();
-            object.tick();
-            object.render(this._ctx, this.frame);
-            this._ctx.restore();
-        });
+        let now = Date.now();
+        let delta = now - this.then;
+        //console.log(delta);
 
-        this.frame++;
+        if (delta > this.interval) {
+            this.then = now - (delta % this.interval);
 
-        setTimeout(()=>{
-            window.requestAnimationFrame(this.loop.bind(this));
-        }, 1000/Config.FPS);
+            this.frame = this.frame || 1;
+            this.frame = (this.frame%Config.FPS) ? this.frame : 1;
+            this._ctx.fillStyle = "#000";
+            this._ctx.fillRect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
+
+            this.objects.forEach((object)=>{
+                this._ctx.save();
+                object.tick();
+                object.render(this._ctx, this.frame);
+                this._ctx.restore();
+            });
+
+            let time_el = (this.then - this.first)/1000;
+            ++this.counter;
+            let fps = this.counter/time_el
+
+            let fontSize    = 5*Config.SPRITE_SCALE;
+            this._ctx.font        = fontSize + "px Courier New";
+            this._ctx.fillStyle   = "#ffffff";
+
+            this._ctx.fillText(this.frame + "/" + Config.FPS + " " + fps, 200, 50);
+
+            this.frame++;
+        }
     }
 
     /**
@@ -41,10 +58,10 @@ export default class {
      * @todo: does this belong here?
      */
     resize() {
-        console.log("resize");
         Config.calculate();
         this._canvas.width = Config.CANVAS_WIDTH;
         this._canvas.height = Config.CANVAS_HEIGHT;
+        this._ctx.imageSmoothingEnabled = false;
     }
 
     /**
@@ -73,15 +90,6 @@ export default class {
 
         let players = [];
         let playerPromises = [];
-
-         //Initialize all players
-        //for(let y = 0; y < Config.TILE_Y - 2; y++) {
-            //for(let x = 0; x < Config.TILE_X; x++) {
-                //let p = new Player(x, y);
-                //players.push(p);
-                //playerPromises.push(p.init());
-            //}
-        //}
 
         // Create 4 players
         let p1 = new Player(13, 3, "ROMEDA");
@@ -119,6 +127,10 @@ export default class {
 
 
         Promise.all(playerPromises).then(()=>{
+            this.then = Date.now();
+            this.interval = 1000/Config.FPS;
+            this.first = this.then;
+            this.counter = 0;
             window.requestAnimationFrame(this.loop.bind(this));
         });
 
@@ -140,68 +152,68 @@ export default class {
 
     attachInput(listener) {
 
-        listener.register_combo({
-            "keys"              : "a",
-            "on_keydown"        : () => {
-                this.players[0].walk('w');
-            }.bind(this),
-            "on_release"        : () => {
-                this.players[0].stopWalking();
-            }.bind(this),
-            "this"              : this,
-            "prevent_default"   : true,
-            "prevent_repeat"    : true,
-        });
-
-        listener.register_combo({
-            "keys"              : "w",
-            "on_keydown"        : () => {
-                this.players[0].walk('n');
-            }.bind(this),
-            "on_release"        : () => {
-                this.players[0].stopWalking();
-            }.bind(this),
-            "this"              : this,
-            "prevent_default"   : true,
-            "prevent_repeat"    : true,
-        });
-
-        listener.register_combo({
-            "keys"              : "d",
-            "on_keydown"        : () => {
-                this.players[0].walk('e');
-            }.bind(this),
-            "on_release"        : () => {
-                this.players[0].stopWalking();
-            }.bind(this),
-            "this"              : this.players[0],
-            "prevent_default"   : true,
-            "prevent_repeat"    : true,
-        });
-
-        listener.register_combo({
-            "keys"              : "s",
-            "on_keydown"        : () => {
-                this.players[0].walk('s');
-            }.bind(this),
-            "on_release"        : () => {
-                this.players[0].stopWalking();
-            }.bind(this),
-            "this"              : this.players[0],
-            "prevent_default"   : true,
-            "prevent_repeat"    : true,
-        });
-
-
-        //listener.simple_combo("t", ()=>{
-            //// Toggle walking and battle
-            //if(!this.room.isBattle) {
-                //this.room.lookForTrouble();
-            //} else {
-                //this.room.endBattle();
-                //this.room.lookForTrouble();
-            //}
-            ////this.necro.toggle();
+        //listener.register_combo({
+            //"keys"              : "a",
+            //"on_keydown"        : () => {
+                //this.players[0].walk('w');
+            //}.bind(this),
+            //"on_release"        : () => {
+                //this.players[0].stopWalking();
+            //}.bind(this),
+            //"this"              : this,
+            //"prevent_default"   : true,
+            //"prevent_repeat"    : true,
         //});
+
+        //listener.register_combo({
+            //"keys"              : "w",
+            //"on_keydown"        : () => {
+                //this.players[0].walk('n');
+            //}.bind(this),
+            //"on_release"        : () => {
+                //this.players[0].stopWalking();
+            //}.bind(this),
+            //"this"              : this,
+            //"prevent_default"   : true,
+            //"prevent_repeat"    : true,
+        //});
+
+        //listener.register_combo({
+            //"keys"              : "d",
+            //"on_keydown"        : () => {
+                //this.players[0].walk('e');
+            //}.bind(this),
+            //"on_release"        : () => {
+                //this.players[0].stopWalking();
+            //}.bind(this),
+            //"this"              : this.players[0],
+            //"prevent_default"   : true,
+            //"prevent_repeat"    : true,
+        //});
+
+        //listener.register_combo({
+            //"keys"              : "s",
+            //"on_keydown"        : () => {
+                //this.players[0].walk('s');
+            //}.bind(this),
+            //"on_release"        : () => {
+                //this.players[0].stopWalking();
+            //}.bind(this),
+            //"this"              : this.players[0],
+            //"prevent_default"   : true,
+            //"prevent_repeat"    : true,
+        //});
+
+
+        listener.simple_combo("t", ()=>{
+            // Toggle walking and battle
+            if(!this.room.isBattle) {
+                this.room.lookForTrouble();
+            } else {
+                this.room.endBattle();
+                this.room.lookForTrouble();
+            }
+            //this.necro.toggle();
+        });
     }
 }

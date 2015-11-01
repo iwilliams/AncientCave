@@ -4,7 +4,7 @@ let config = {};
  * Not working right at all for window size chagnes.
  */
 config.calculate = function() {
-    config.PERCENTAGE = .90;
+    config.PERCENTAGE = 1;
 
     // 16x9 Aspect Ratio
     config.ASPECT_WIDTH  = 1920;

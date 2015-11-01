@@ -10,15 +10,15 @@ export default class extends SpriteRenderer {
 
     render(ctx, frame) {
         this.frame = (frame%2) ? 0 : 1;
-        if(frame < 15) {
-            this.frame = 0;
-        } else if (frame < 30) {
-            this.frame = 1;
-        } else if (frame < 45) {
-            this.frame = 0;
-        } else if (frame < 60) {
-            this.frame = 1;
-        }
+        //if(frame < 15) {
+            //this.frame = 0;
+        //} else if (frame < 30) {
+            //this.frame = 1;
+        //} else if (frame < 45) {
+            //this.frame = 0;
+        //} else if (frame < 60) {
+            //this.frame = 1;
+        //}
 
         ctx.drawImage(...[
                 this.image,
