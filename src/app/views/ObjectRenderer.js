@@ -8,11 +8,11 @@ export default class extends SpriteRenderer {
         this.object = object;
     }
 
-    render(ctx) {
-        if(!this.frame) this.frame = 0;
+    render(ctx, frame) {
+        this.frame = (frame < Config.FPS/2) ? 0 : 1;
         ctx.drawImage(...[
                 this.image,
-                Config.SPRITE_SIZE*(this.frame * 2), // DX
+                this.object.isWalking ? Config.SPRITE_SIZE*(this.frame * 2) : 0, // DX
                 0, // DY
                 Config.SPRITE_SIZE, // dWidth
                 Config.SPRITE_SIZE, // dHeight
@@ -21,6 +21,5 @@ export default class extends SpriteRenderer {
                 Config.SPRITE_SIZE*Config.SPRITE_SCALE, // sWidth
                 Config.SPRITE_SIZE*Config.SPRITE_SCALE  // sHeight
             ]);
-        this.frame = this.frame ? 0 : 1;
     }
 }

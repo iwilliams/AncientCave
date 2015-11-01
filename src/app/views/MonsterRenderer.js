@@ -8,17 +8,18 @@ export default class extends SpriteRenderer {
         this.object = object;
     }
 
-    render(ctx) {
+    render(ctx, frame) {
+
         ctx.drawImage(...[
-                this.image,
-                0,
-                0, // DY
-                this.image.width, // dWidth
-                this.image.height, // dHeight
-                20,
-                20,
-                this.image.width*Config.SPRITE_SCALE, // sWidth
-                this.image.height*Config.SPRITE_SCALE  // sHeight
-            ]);
+            this.image,
+            0,
+            0, // DY
+            this.image.width, // dWidth
+            this.image.height, // dHeight
+            20,
+            frame, // Ypos
+            this.image.width*Config.SPRITE_SCALE, // sWidth
+            this.image.height*Config.SPRITE_SCALE  // sHeight
+        ]);
     }
 }

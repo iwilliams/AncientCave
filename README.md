@@ -7,6 +7,22 @@
 
 This game aims to be a pseudo remake of the Final Fantasy V Rom Hack Ancient Cave. The basic idea is a Final Fantasy inspired rogue-esque game.
 
+http://www.twitch.tv/ianawill
+https://github.com/iwilliams/AncientCave
+
+Developing a JS clone of a FFV mod called Ancient Cave
+
+    @todo:
+        - Basic Project Organization ~ DONE
+        - Basic Renderer             ~ DONE
+        - Basic UI                   ~ IN PROGRESS
+        - Basic Input                ~ TODO
+        - Begin Combat Logic         ~ TODO
+
+    Twitter: @ianawill
+    Twtich:  ianawill
+    Github:  iwilliams
+
 # Install
 To pull down packages:
 `npm install`

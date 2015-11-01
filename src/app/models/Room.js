@@ -2,8 +2,13 @@ import RoomRenderer from '../views/RoomRenderer';
 
 export default class {
 
-    constructor() {
-        this.roomBgResource = '/dist/resources/images/ffv-bg.png';
+    // Static Room Types
+    static get TYPE_CAVE()    { return '/dist/resources/images/ffv-bg.png';}
+    static get TYPE_OUTSIDE() { return '/dist/resources/images/ffv-bg2.png';}
+
+    constructor(type) {
+        this.roomBgResource = type;
+        this.isMoving       = false;
     }
 
     init() {
@@ -14,7 +19,7 @@ export default class {
         });
     }
 
-    render(ctx) {
-        this.renderer.render(ctx);
+    render(ctx, frame) {
+        this.renderer.render(ctx, frame);
     }
 }

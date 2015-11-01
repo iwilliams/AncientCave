@@ -15,7 +15,7 @@ export default class {
         });
     }
 
-    render(ctx) {
-        this.renderer.render(ctx);
+    render(ctx, frame) {
+        this.renderer.render(ctx, frame);
     }
 }

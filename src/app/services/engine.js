@@ -1,10 +1,11 @@
-import Logger  from './Logger';
-import Player  from '../models/Player';
-import Monster from '../models/Monster';
-import Room    from '../models/Room';
-import Ui      from '../models/Ui';
-import Utils   from './Utils';
-import Config  from '../../Config';
+import Logger   from './Logger';
+import Player   from '../models/Player';
+import Monster  from '../models/Monster';
+import Room     from '../models/Room';
+import Ui       from '../models/Ui';
+import BattleUi from '../models/BattleUi';
+import Utils    from './Utils';
+import Config   from '../../Config';
 
 export default class {
     constructor(element) {
@@ -16,26 +17,31 @@ export default class {
     }
 
     loop() {
+        this.frame = this.frame || 1;
+        this.frame = (this.frame%Config.FPS) ? this.frame : 1;
         this._ctx.fillStyle = "#000";
         this._ctx.fillRect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
 
-        this.room.render(this._ctx);
-
-        if(!this.frame) this.frame = 0;
+        this.room.render(this._ctx, this.frame);
 
         this.players.forEach((player)=>{
-            player.render(this._ctx);
+            this._ctx.save();
+            player.render(this._ctx, this.frame);
+            this._ctx.restore();
         });
 
-        this.ui.render(this._ctx);
+        this._ctx.save();
+        this.necro.render(this._ctx, this.frame);
+        this._ctx.restore();
 
-        this.necro.render(this._ctx);
-
-        this.frame = this.frame ? 0 : 1;
+        this._ctx.save();
+        this.ui.render(this._ctx, this.frame);
+        this._ctx.restore();
+        this.frame++;
 
         setTimeout(()=>{
             window.requestAnimationFrame(this.loop.bind(this));
-        }, Config.FPS);
+        }, 1000/Config.FPS);
     }
 
     /**
@@ -45,6 +51,8 @@ export default class {
     resize() {
         console.log("resize");
         Config.calculate();
+        this._canvas.width = Config.CANVAS_WIDTH;
+        this._canvas.height = Config.CANVAS_HEIGHT;
     }
 
     /**
@@ -84,13 +92,13 @@ export default class {
         //}
 
         // Create 4 players
-        let p1 = new Player(13, 3);
+        let p1 = new Player(13, 3, "ROMEDA");
         players.push(p1);
-        let p2 = new Player(14, 4);
+        let p2 = new Player(14, 4, "Stooks");
         players.push(p2);
-        let p3 = new Player(13, 5);
+        let p3 = new Player(13, 5, "Mecha");
         players.push(p3);
-        let p4 = new Player(14, 6);
+        let p4 = new Player(14, 6, "Space Squid");
         players.push(p4);
 
         // Init all players
@@ -106,17 +114,28 @@ export default class {
         playerPromises.push(this.necro.init());
 
         // Initialize UI
-        this.ui = new Ui();
+        this.ui = new BattleUi(0, 0, 0, 0, players, players);
         playerPromises.push(this.ui.init());
 
         // Initialize Room
-        this.room = new Room();
+        this.room = new Room(Room.TYPE_OUTSIDE);
         playerPromises.push(this.room.init());
 
 
         Promise.all(playerPromises).then(()=>{
             window.requestAnimationFrame(this.loop.bind(this));
         });
+
+        // Attach input listeners
+        this.listener = new window.keypress.Listener();
+
+        this.listener.simple_combo("t", ()=>{
+            this.room.isMoving = !this.room.isMoving;
+            this.players.forEach((player)=>{
+                player.isWalking = !player.isWalking;
+            });
+        });
+
 
         // Attach resize event
         //window.resize = this.resize.bind(this);

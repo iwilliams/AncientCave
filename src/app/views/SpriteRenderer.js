@@ -18,6 +18,6 @@ export default class extends Renderer {
         });
     }
 
-    render(ctx) {
+    render(ctx, frame) {
     }
 }
