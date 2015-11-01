@@ -25,7 +25,7 @@ config.calculate = function() {
     config.SPRITE_SIZE   = 24;
     config.SPRITE_SCALE  = config.CANVAS_WIDTH/(config.TILE_X*config.SPRITE_SIZE);
 
-    config.FPS = 10;
+    config.FPS = 60;
 }
 
 config.calculate();

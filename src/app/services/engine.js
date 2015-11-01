@@ -99,7 +99,7 @@ export default class {
         playerPromises.push(p3.init());
         playerPromises.push(p4.init());
 
-        this.players = new Set(players);
+        this.players = players;
 
         //// Add a baddie
         this.necro = new Monster(1, 1);
@@ -142,29 +142,66 @@ export default class {
 
         listener.register_combo({
             "keys"              : "a",
-            "on_keydown"        : this.room.lookForTrouble,
-            "on_keyup"          : this.room.stopLooking,
-            "on_release"        : null,
-            "this"              : this.room,
-            "prevent_default"   : false,
+            "on_keydown"        : () => {
+                this.players[0].walk('w');
+            }.bind(this),
+            "on_release"        : () => {
+                this.players[0].stopWalking();
+            }.bind(this),
+            "this"              : this,
+            "prevent_default"   : true,
             "prevent_repeat"    : true,
-            "is_unordered"      : false,
-            "is_counting"       : false,
-            "is_exclusive"      : false,
-            "is_solitary"       : false,
-            "is_sequence"       : false
+        });
+
+        listener.register_combo({
+            "keys"              : "w",
+            "on_keydown"        : () => {
+                this.players[0].walk('n');
+            }.bind(this),
+            "on_release"        : () => {
+                this.players[0].stopWalking();
+            }.bind(this),
+            "this"              : this,
+            "prevent_default"   : true,
+            "prevent_repeat"    : true,
+        });
+
+        listener.register_combo({
+            "keys"              : "d",
+            "on_keydown"        : () => {
+                this.players[0].walk('e');
+            }.bind(this),
+            "on_release"        : () => {
+                this.players[0].stopWalking();
+            }.bind(this),
+            "this"              : this.players[0],
+            "prevent_default"   : true,
+            "prevent_repeat"    : true,
+        });
+
+        listener.register_combo({
+            "keys"              : "s",
+            "on_keydown"        : () => {
+                this.players[0].walk('s');
+            }.bind(this),
+            "on_release"        : () => {
+                this.players[0].stopWalking();
+            }.bind(this),
+            "this"              : this.players[0],
+            "prevent_default"   : true,
+            "prevent_repeat"    : true,
         });
 
 
-        listener.simple_combo("t", ()=>{
-            // Toggle walking and battle
-            if(!this.room.isBattle) {
-                this.room.lookForTrouble();
-            } else {
-                this.room.endBattle();
-                this.room.lookForTrouble();
-            }
-            //this.necro.toggle();
-        });
+        //listener.simple_combo("t", ()=>{
+            //// Toggle walking and battle
+            //if(!this.room.isBattle) {
+                //this.room.lookForTrouble();
+            //} else {
+                //this.room.endBattle();
+                //this.room.lookForTrouble();
+            //}
+            ////this.necro.toggle();
+        //});
     }
 }
