@@ -12,7 +12,8 @@ var bowerDir = function(dir) {
 };
 
 var includes = {
-    keypress: bowerDir('Keypress/')
+    keypress: bowerDir('Keypress/'),
+    peerjs:   bowerDir('peerjs/')
 }
 
 // Compile es6 code
@@ -29,7 +30,8 @@ defaultTasks.push('es6');
 // Vendor Scripts
 gulp.task('vendor-scripts', function() {
     return gulp.src([
-        includes.keypress + 'keypress-2.1.3.min.js'
+        includes.keypress + 'keypress-2.1.3.min.js',
+        includes.peerjs   + 'peer.min.js'
     ])
     .pipe(concat('vendor.js'))
     .pipe(uglify())
@@ -56,5 +58,10 @@ gulp.task('move-resources', function() {
         .pipe(gulp.dest('./dist/resources'));
 });
 defaultTasks.push('move-resources');
+
+gulp.task('watch-resources', function() {
+    gulp.watch(['./src/resources/*/**'], ['move-resources']);
+});
+defaultTasks.push('watch-resources');
 
 gulp.task('default', defaultTasks);

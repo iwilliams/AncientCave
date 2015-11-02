@@ -4,12 +4,20 @@ import RoomRenderer from '../views/RoomRenderer';
 export default class extends BaseObject {
 
     // Static Room Types
-    static get TYPE_CAVE()    { return '/dist/resources/images/ffv-bg.png';}
-    static get TYPE_OUTSIDE() { return '/dist/resources/images/ffv-bg2.png';}
+    static get TYPE_CAVE() {
+        return {
+            floor: '/dist/resources/images/goodtile.png',
+            wall: '/dist/resources/images/pillars.png'
+        };
+    }
+    static get TYPE_OUTSIDE() { return '/dist/resources/images/grass.png';}
 
     constructor(type, enemies, players, encounterRate) {
         super();
-        this.roomBgResource = type;
+
+        this.floorResource  = type.floor;
+        this.wallResource   = type.wall;
+
         this.isMoving       = false;
         this.isBattle       = false;
         this.enemies        = enemies;
@@ -79,8 +87,7 @@ export default class extends BaseObject {
     tick() {
         this.tickCount = this.tickCount || 0;
         if(this.isLooking) {
-            this.tickCount++;
-            console.log('tick');
+            //this.tickCount++;
             if(this.tickCount > this.nextEncounter) {
                 this.startBattle();
             }
