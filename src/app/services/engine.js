@@ -43,6 +43,17 @@ export default class {
             this._canvas.height = Config.CANVAS_HEIGHT;
             this._ctx.imageSmoothingEnabled = false;
 
+            let shouldMove = true;
+            for (let player of this.players.values()) {
+                shouldMove = shouldMove && player.ready;
+            }
+
+            if(!this.room.isLooking && shouldMove) {
+                this.room.lookForTrouble();
+            } else if(this.room.isLooking && !shouldMove) {
+                this.room.stopLooking();
+            }
+
             this.objects.forEach((object)=>{
                 this._ctx.save();
                 object.tick();
@@ -101,7 +112,7 @@ export default class {
         this._ctx = this._canvas.getContext('2d');
         this._ctx.imageSmoothingEnabled = false;
 
-        let players = [];
+        this.players = new Map();
         let promises = [];
 
         let yOffset = 1.60;
@@ -122,7 +133,7 @@ export default class {
         }
 
         let p1 = new Player(xOffset, yOffset, queryParams.name, job);
-        players.push(p1);
+        this.players.set(p1.name, p1);
 
         //let p2 = new Player(++xOffset, ++yOffset, "Stooks", Player.JOB_CLAIRVOYANT);
         //players.push(p2);
@@ -137,15 +148,13 @@ export default class {
         //promises.push(p3.init());
         //promises.push(p4.init());
 
-        this.players = players;
-
         //// Add a baddie
         this.necro = new Monster(1, 1);
         promises.push(this.necro.init());
         this.necro.hide();
 
         // Initialize UI
-        this.ui = new BattleUi(0, 0, 0, 0, players, players);
+        this.ui = new BattleUi(0, 0, 0, 0, this.players, this.players);
         promises.push(this.ui.init());
 
         // Initialize Room
@@ -153,7 +162,7 @@ export default class {
         promises.push(this.room.init());
 
         // Create all objects
-        this.objects = [this.room, ...this.players, this.necro, this.ui];
+        this.objects = [this.room, ...this.players.values(), this.necro, this.ui];
         //this.objects = [this.room, ...this.players, this.necro];
 
         // Attach input listeners
@@ -172,9 +181,14 @@ export default class {
             console.log("add player");
             let p = new Player(xOffset, ++yOffset, player.name, player.job);
             p.init().then(()=>{
-                this.players.push(p);
+                this.players.set(p.name, p);
                 this.objects.push(p);
             });
+        });
+
+        this.multiplayerController.on("player-state", (player)=>{
+            this.players.get(player.name).ready = player.ready;
+            console.log(this.players);
         });
 
         this.multiplayerController.on("click", (player)=>{
@@ -222,16 +236,11 @@ export default class {
 
         window.onclick = () => {
             this.multiplayerController.click();
-            if(!this.room.isLooking) {
-                this.room.lookForTrouble();
-            } else {
-                //this.room.endBattle();
-                this.room.stopLooking();//lookForTrouble();
-            }
+
         };
 
-        listener.simple_combo("t", ()=>{
-            lookForTrouble();
-        });
+        //listener.simple_combo("t", ()=>{
+            //lookForTrouble();
+        //});
     }
 }

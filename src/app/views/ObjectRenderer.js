@@ -34,5 +34,19 @@ export default class extends SpriteRenderer {
             Config.SPRITE_SIZE*Config.SPRITE_SCALE, // sWidth
             Config.SPRITE_SIZE*Config.SPRITE_SCALE  // sHeight
         ]);
+
+        if(!this.object.ready) {
+            ctx.drawImage(...[
+                this.waiting,
+                0,
+                0, // DY
+                this.waiting.width, // dWidth
+                this.waiting.height, // dHeight
+                this.object.xPos*(Config.SPRITE_SIZE*Config.SPRITE_SCALE) - (this.waiting.width*Config.SPRITE_SCALE/1.5), // sx ~ Replace with object X Pos
+                this.object.yPos*(Config.SPRITE_SIZE*Config.SPRITE_SCALE) - (this.waiting.height*Config.SPRITE_SCALE/1.5), // sy ~ Replace with object Y Pos
+                this.waiting.width*Config.SPRITE_SCALE, // sWidth
+                this.waiting.height*Config.SPRITE_SCALE  // sHeight
+            ]);
+        }
     }
 }

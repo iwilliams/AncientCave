@@ -36,6 +36,8 @@ export default class extends BaseObject {
 
         this.name = name;
 
+        this.ready = false;
+
         this.job = job;
         // Define the Spirte Associated with the Player
         this.spriteResource = job.sprite;

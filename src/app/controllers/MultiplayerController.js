@@ -113,8 +113,21 @@ export default class {
             this.emit("player-connect", data.player);
         }
 
-        if(data.event == "click") {
-            this.emit("click");
+        if(data.event == "player-state") {
+            this.emit("player-state", data.player);
         }
+    }
+
+    click() {
+        this._player.ready = !this._player.ready;
+        this._connections.forEach((connection)=>{
+            connection.send({
+                "event":     "player-state",
+                "player": {
+                    "name":  this._player.name,
+                    "ready": this._player.ready
+                }
+            });
+        });
     }
 }

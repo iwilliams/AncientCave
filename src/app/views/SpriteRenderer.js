@@ -7,6 +7,7 @@ export default class extends Renderer {
         super();
 
         this.shadowImage = './dist/resources/images/shadow.png';
+        this.waitingImage = './dist/resources/images/waiting.png';
 
         if(spriteResource) {
             this._spriteResource = spriteResource;
@@ -28,6 +29,13 @@ export default class extends Renderer {
                         res(this);
                     }
                     this.shadow.src = this.shadowImage;
+                }),
+                new Promise((res, rej)=>{
+                    this.waiting = document.createElement('img');
+                    this.waiting.onload = function() {
+                        res(this);
+                    }
+                    this.waiting.src = this.waitingImage;
                 })
             ]);
     }

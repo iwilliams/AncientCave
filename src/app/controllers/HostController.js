@@ -58,13 +58,4 @@ export default class extends MultiplayerController {
             res();
         });
     }
-
-
-    click() {
-        this._connections.forEach((connection)=>{
-            connection.send({
-                "event": "click"
-            });
-        });
-    }
 }
