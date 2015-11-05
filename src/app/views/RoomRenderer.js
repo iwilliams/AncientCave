@@ -34,22 +34,6 @@ export default class extends SpriteRenderer {
 
     render(ctx, frame) {
 
-        //ctx.drawImage(...[
-            //this.image,
-            //this._offsetX - Config.CANVAS_WIDTH, // DX
-            //0, // DY
-            //Config.CANVAS_WIDTH, // dWidth
-            //Config.CANVAS_HEIGHT, // dHeight
-        //]);
-
-        //ctx.drawImage(...[
-            //this.image,
-            //this._offsetX, // DX
-            //0, // DY
-            //Config.CANVAS_WIDTH, // dWidth
-            //Config.CANVAS_HEIGHT, // dHeight
-        //]);
-
         for(let x = 0; x < Config.TILE_X+1; x++) {
             for(let y = 0; y < Config.TILE_Y - 2; y++) {
                 ctx.drawImage(...[

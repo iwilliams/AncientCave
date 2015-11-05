@@ -6,7 +6,7 @@ export default class extends BaseObject {
     constructor(xPos, yPos) {
         super(xPos, yPos);
         // Define the Spirte Associated with the Player
-        this.spriteResource = '/dist/resources/images/necro-sprite.png';
+        this.spriteResource = 'dist/resources/images/necro-sprite.png';
     }
 
     init() {

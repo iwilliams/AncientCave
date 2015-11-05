@@ -12,7 +12,7 @@ export default class extends BaseObject {
      */
     constructor(width, height, offsetX, offsetY) {
         super();
-        this.bg      = '/dist/resources/images/ui-bg.png';
+        this.bg      = 'dist/resources/images/ui-bg.png';
         this.width   = width;
         this.height  = height;
         this.offsetX = offsetX;

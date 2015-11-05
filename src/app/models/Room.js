@@ -6,11 +6,11 @@ export default class extends BaseObject {
     // Static Room Types
     static get TYPE_CAVE() {
         return {
-            floor: '/dist/resources/images/goodtile.png',
-            wall: '/dist/resources/images/pillars.png'
+            floor: 'dist/resources/images/goodtile.png',
+            wall: 'dist/resources/images/pillars.png'
         };
     }
-    static get TYPE_OUTSIDE() { return '/dist/resources/images/grass.png';}
+    static get TYPE_OUTSIDE() { return 'dist/resources/images/grass.png';}
 
     constructor(type, enemies, players, encounterRate) {
         super();
