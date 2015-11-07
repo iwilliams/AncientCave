@@ -7,9 +7,9 @@ function error(message, ...args){
 }
 
 export default class {
-    constructor(player) {
+    constructor(player, id) {
         this._player = player;
-        this._peer = new Peer({
+        this._peer = new Peer(id || null, {
             key: Config.API_KEY,
             debug: 3
         });
@@ -98,6 +98,7 @@ export default class {
      handleData(data) {
         console.log(data);
         if(data.event == "host-connect") {
+            this.emit("host-connect", data.seed);
             this._connections.forEach((connection)=>{
                 connection.send({
                     "event": "player-connect",
@@ -120,14 +121,16 @@ export default class {
 
     click() {
         this._player.ready = !this._player.ready;
-        this._connections.forEach((connection)=>{
-            connection.send({
-                "event":     "player-state",
-                "player": {
-                    "name":  this._player.name,
-                    "ready": this._player.ready
-                }
+        if(this._connections) {
+            this._connections.forEach((connection)=>{
+                connection.send({
+                    "event":     "player-state",
+                    "player": {
+                        "name":  this._player.name,
+                        "ready": this._player.ready
+                    }
+                });
             });
-        });
+        }
     }
 }

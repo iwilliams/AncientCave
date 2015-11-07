@@ -6,18 +6,15 @@ export default class extends BaseObject {
     // Static Room Types
     static get TYPE_CAVE() {
         return {
-            floor: 'dist/resources/images/goodtile.png',
-            wall: 'dist/resources/images/pillars.png'
+            floor: 'goodtile.png',
+            wall: 'pillars.png'
         };
     }
-    static get TYPE_OUTSIDE() { return 'dist/resources/images/grass.png';}
 
     constructor(type, enemies, players, encounterRate) {
         super();
 
-        this.floorResource  = type.floor;
-        this.wallResource   = type.wall;
-
+        this.type = type;
         this.isMoving       = false;
         this.isBattle       = false;
         this.enemies        = enemies;
@@ -25,15 +22,11 @@ export default class extends BaseObject {
         this.isLooking      = false;
 
         this.encounterRate = encounterRate || 50;
-        this.calculateNextEncounter();
     }
 
     init() {
-        return new Promise((res, rej) => {
-            this.renderer = new RoomRenderer(this);
-            this.renderer.init()
-                .then(res);
-        });
+        this.renderer = new RoomRenderer(this);
+        return this.renderer.init();
     }
 
     lookForTrouble() {
@@ -43,6 +36,7 @@ export default class extends BaseObject {
         this.isLooking = true;
         this.players.forEach((player)=>{
             player.isWalking = !player.isWalking;
+            console.log(player.isWalking);
         });
     }
 
@@ -61,8 +55,6 @@ export default class extends BaseObject {
             this.enemies.forEach((enemy)=>{
                 enemy.toggle();
             });
-
-            this.calculateNextEncounter();
         }
     }
 
@@ -76,18 +68,18 @@ export default class extends BaseObject {
         });
         this.players.forEach((player)=>{
             player.isWalking = false;
+            player.ready     = false;
         });
     }
 
-    calculateNextEncounter() {
-        var myRand = Math.floor(Math.random()*100/this.encounterRate);
-        this.nextEncounter = myRand*50 + 25;
+    setNextEncounter(ticks) {
+        this.nextEncounter = ticks;
     }
 
     tick() {
         this.tickCount = this.tickCount || 0;
         if(this.isLooking) {
-            //this.tickCount++;
+            this.tickCount++;
             if(this.tickCount > this.nextEncounter) {
                 this.startBattle();
             }

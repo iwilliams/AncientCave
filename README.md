@@ -4,6 +4,11 @@
 /  _  \ | | | (__| |  __/ | | | |_  / /__| (_| |\ V /  __/
 \_/ \_/_| |_|\___|_|\___|_| |_|\__| \____/\__,_| \_/ \___|
 ```
+BRB BRB
+BRB BRB
+BRB BRB
+BRB BRB
+BRB BRB
 
 This game aims to be a pseudo remake of the Final Fantasy V Rom Hack Ancient Cave. The basic idea is a Final Fantasy inspired rogue-esque game.
 
@@ -15,9 +20,10 @@ Developing a JS clone of a FFV mod called Ancient Cave
     @todo:
         - Basic Project Organization ~ DONE
         - Basic Renderer             ~ DONE
-        - Basic UI                   ~ IN PROGRESS
-        - Basic Input                ~ TODO
-        - Begin Combat Logic         ~ TODO
+        - Basic Online               ~ DONE
+        - Basic UI                   ~ DONE
+        - Basic Input                ~ DONE
+        - Begin Combat Logic         ~ IN PROGRESS
 
     Twitter: @ianawill
     Twtich:  ianawill

@@ -1,67 +1,57 @@
-import SpriteRenderer from './SpriteRenderer';
+import Renderer from './Renderer';
 import Utils from '../services/Utils';
 import Config from '../../Config';
 
-export default class extends SpriteRenderer {
+export default class extends Renderer {
     constructor(object) {
         super();
-        this.floorResource = object.floorResource;
-        this.wallResource  = object.wallResource;
-
         this.room = object;
-        this._offsetX = 0;
-        this.wallOffset = 0;
+        this._floorOffset = 0;
+        this._wallOffset  = 0;
     }
 
     init() {
         return Promise.all([
-            new Promise((res, rej)=>{
-                this.floorImage = document.createElement('img');
-                this.floorImage.onload = function() {
-                    res(this);
-                }
-                this.floorImage.src = this.floorResource;
-            }),
-            new Promise((res, rej)=>{
-                this.wallImage = document.createElement('img');
-                this.wallImage.onload = function() {
-                    res(this);
-                }
-                this.wallImage.src = this.wallResource;
-            })
+            this.loadResource("floor", this.room.type.floor),
+            this.loadResource("wall",  this.room.type.wall)
         ]);
     }
 
     render(ctx, frame) {
 
+        let floor = this._resources.get('floor');
+        let floorWidth = floor.width*Config.SPRITE_SCALE;
         for(let x = 0; x < Config.TILE_X+1; x++) {
             for(let y = 0; y < Config.TILE_Y - 2; y++) {
                 ctx.drawImage(...[
-                    this.floorImage,
-                    (x*Config.SPRITE_SIZE*Config.SPRITE_SCALE) - (Config.SPRITE_SIZE*Config.SPRITE_SCALE) + this._offsetX, // DX
-                    (y+2)*Config.SPRITE_SIZE*Config.SPRITE_SCALE, // DX
-                    Config.SPRITE_SIZE*Config.SPRITE_SCALE, // sWidth
-                    Config.SPRITE_SIZE*Config.SPRITE_SCALE // sWidth
+                    this._resources.get('floor'),
+                    this._floorOffset + floorWidth*x - floorWidth, // DX
+                    (y+2)*floorWidth, // DX
+                    floorWidth,
+                    floorWidth
                 ]);
             }
         }
 
-        for(let x = 0; x < Config.CANVAS_WIDTH/(this.wallImage.width*Config.SPRITE_SCALE) + 1; x++) {
+        let wall = this._resources.get('wall');
+        let wallWidth = wall.width*Config.SPRITE_SCALE;
+        for(let x = 0; x < Config.CANVAS_WIDTH/(wallWidth) + 1; x++) {
             ctx.drawImage(...[
-                this.wallImage,
-                this.wallOffset + (this.wallImage.width*Config.SPRITE_SCALE*x) - (this.wallImage.width*Config.SPRITE_SCALE),
+                wall,
+                this._wallOffset + wallWidth*x - wallWidth,
                 0,
-                this.wallImage.width*Config.SPRITE_SCALE, // sWidth
-                this.wallImage.height*Config.SPRITE_SCALE // sWidth
+                this._resources.get('wall').width*Config.SPRITE_SCALE, // sWidth
+                this._resources.get('wall').height*Config.SPRITE_SCALE // sWidth
             ]);
         }
 
+        let xStep = Config.SPRITE_SIZE*Config.SPRITE_SCALE/16;
         if(this.room.isMoving) {
-            this._offsetX += Config.SPRITE_SIZE*Config.SPRITE_SCALE/16;
-            if(this._offsetX >= Config.SPRITE_SIZE*Config.SPRITE_SCALE - 1) this._offsetX = 0;
+            this._floorOffset += xStep;
+            if(this._floorOffset >= floorWidth - 1) this._floorOffset = 0;
 
-            this.wallOffset += Config.SPRITE_SIZE*Config.SPRITE_SCALE/16;
-            if(this.wallOffset > this.wallImage.width*Config.SPRITE_SCALE - 1) this.wallOffset = 0;
+            this._wallOffset += xStep;
+            if(this._wallOffset > wallWidth - 1) this._wallOffset = 0;
         }
     }
 }

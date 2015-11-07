@@ -1,24 +1,31 @@
-import SpriteRenderer from './SpriteRenderer';
+import Renderer from './Renderer';
 import Utils from '../services/Utils';
 import Config from '../../Config';
 
-export default class extends SpriteRenderer {
-    constructor(object) {
-        super(object.spriteResource);
-        this.object = object;
+export default class extends Renderer {
+    constructor(monster) {
+        super()
+        this.monster = monster;
+    }
+
+    init() {
+        return Promise.all([
+            this.loadResource('sprite', this.monster.type.sprite),
+        ]);
     }
 
     render(ctx, frame) {
+        this.frame = (frame < Config.FPS/2) ? 0 : 1;
         ctx.drawImage(...[
-            this.image,
+            this._resources.get('sprite'),
             0,
-            0, // DY
-            this.image.width, // dWidth
-            this.image.height, // dHeight
+            this._resources.get('sprite').height/2*(this.frame), // DX
+            this._resources.get('sprite').width/2, // dWidth
+            this._resources.get('sprite').height/2, // dHeight
             20,
-            frame, // Ypos
-            this.image.width*Config.SPRITE_SCALE, // sWidth
-            this.image.height*Config.SPRITE_SCALE  // sHeight
+            10, // Ypos
+            this._resources.get('sprite').width/2*Config.SPRITE_SCALE, // sWidth
+            this._resources.get('sprite').height/2*Config.SPRITE_SCALE  // sHeight
         ]);
     }
 }

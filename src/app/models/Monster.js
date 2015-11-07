@@ -3,17 +3,21 @@ import MonsterRenderer from '../views/MonsterRenderer';
 
 export default class extends BaseObject {
 
-    constructor(xPos, yPos) {
+    // Static Room Types
+    static get TYPE_WURM() {
+        return {
+            'sprite': 'wurm-sheet.png',
+            'name':   'wurm'
+        }
+    }
+
+    constructor(xPos, yPos, type) {
         super(xPos, yPos);
-        // Define the Spirte Associated with the Player
-        this.spriteResource = 'dist/resources/images/necro-sprite.png';
+        this.type = type;
     }
 
     init() {
-        return new Promise((res, rej) => {
-            this.renderer = new MonsterRenderer(this);
-            this.renderer.init()
-                .then(res);
-        });
+        this.renderer = new MonsterRenderer(this);
+        return this.renderer.init();
     }
 }

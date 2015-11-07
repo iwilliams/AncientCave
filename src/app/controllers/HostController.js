@@ -3,6 +3,11 @@ import Config                from '../../Config';
 
 export default class extends MultiplayerController {
 
+    constructor(player, seed) {
+        super(player, "host");
+        this._seed = seed;
+    }
+
     /**
      * Initialize this Controller
      *
@@ -40,7 +45,8 @@ export default class extends MultiplayerController {
 
                     connection.send({
                         "event": "host-connect",
-                        "connections": ids
+                        "connections": ids,
+                        "seed": this._seed
                     });
 
                     connection.send({
