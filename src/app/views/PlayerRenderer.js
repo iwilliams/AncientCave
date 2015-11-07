@@ -17,18 +17,27 @@ export default class extends Renderer {
     }
 
     render(ctx, frame) {
-        this.frame = (frame < Config.FPS/2) ? 0 : 1;
+        this.frame      = (frame < Config.FPS/2) ? 0 : 1;
+
+        let player      = this._resources.get('player');
+        let playerWidth = Config.SPRITE_SIZE*Config.SPRITE_SCALE;
+
+        let shadow      = this._resources.get('shadow');
+
+        let bubble       = this._resources.get('bubble');
+        let bubbleWidth  = bubble.width*Config.SPRITE_SCALE;
+        let bubbleHeight = bubble.height*Config.SPRITE_SCALE;
 
         ctx.drawImage(...[
-            this._resources.get('shadow'),
+            shadow,
             0,
             0, // DY
-            Config.SPRITE_SIZE, // dWidth
-            Config.SPRITE_SIZE, // dHeight
-            this.player.xPos*(Config.SPRITE_SIZE*Config.SPRITE_SCALE), // sx ~ Replace with player X Pos
-            this.player.yPos*(Config.SPRITE_SIZE*Config.SPRITE_SCALE) + (Config.SPRITE_SIZE*Config.SPRITE_SCALE) - (Config.SPRITE_SCALE*this._resources.get('shadow')/1.75), // sy ~ Replace with player Y Pos
-            Config.SPRITE_SIZE*Config.SPRITE_SCALE, // sWidth
-            Config.SPRITE_SIZE*Config.SPRITE_SCALE  // sHeight
+            shadow.width, // dWidth
+            shadow.width, // dHeight
+            this.player.xPos*(playerWidth), // sx ~ Replace with player X Pos
+            this.player.yPos*(playerWidth) + (playerWidth) - (Config.SPRITE_SCALE*this._resources.get('shadow').height/1.75), // sy ~ Replace with player Y Pos
+            playerWidth, // sWidth
+            playerWidth  // sHeight
         ]);
 
 
@@ -39,10 +48,10 @@ export default class extends Renderer {
             0, // DY
             Config.SPRITE_SIZE, // dWidth
             Config.SPRITE_SIZE, // dHeight
-            this.player.xPos*(Config.SPRITE_SIZE*Config.SPRITE_SCALE), // sx ~ Replace with object X Pos
-            this.player.yPos*(Config.SPRITE_SIZE*Config.SPRITE_SCALE), // sy ~ Replace with object Y Pos
-            Config.SPRITE_SIZE*Config.SPRITE_SCALE, // sWidth
-            Config.SPRITE_SIZE*Config.SPRITE_SCALE  // sHeight
+            this.player.xPos*(playerWidth), // sx ~ Replace with object X Pos
+            this.player.yPos*(playerWidth), // sy ~ Replace with object Y Pos
+            playerWidth, // sWidth
+            playerWidth  // sHeight
         ]);
 
         if(!this.player.ready) {
@@ -50,12 +59,12 @@ export default class extends Renderer {
                 this._resources.get('bubble'),
                 0,
                 0, // DY
-                this._resources.get('bubble').width, // dWidth
-                this._resources.get('bubble').height, // dHeight
-                this.player.xPos*(Config.SPRITE_SIZE*Config.SPRITE_SCALE) - (this._resources.get('bubble').width*Config.SPRITE_SCALE/1.5), // sx ~ Replace with object X Pos
-                this.player.yPos*(Config.SPRITE_SIZE*Config.SPRITE_SCALE) - (this._resources.get('bubble').height*Config.SPRITE_SCALE/1.5), // sy ~ Replace with object Y Pos
-                this._resources.get('bubble').width*Config.SPRITE_SCALE, // sWidth
-                this._resources.get('bubble').height*Config.SPRITE_SCALE  // sHeight
+                bubble.width,  // dWidth
+                bubble.height, // dHeight
+                this.player.xPos*(playerWidth) - (bubbleWidth/1.5), // sx ~ Replace with object X Pos
+                this.player.yPos*(playerWidth) - (bubbleHeight/1.5), // sy ~ Replace with object Y Pos
+                bubbleWidth,  // sWidth
+                bubbleHeight  // sHeight
             ]);
         }
     }

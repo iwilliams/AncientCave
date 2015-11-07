@@ -34,15 +34,9 @@ export default class extends BaseObject {
 
     constructor(xPos, yPos, name, job) {
         super(xPos, yPos);
-
         this.name = name;
-
         this.ready = false;
-
         this.job = job;
-        // Define the Spirte Associated with the Player
-        this.spriteResource = job.sprite;
-
         this.isWalking = false;
     }
 

@@ -18,13 +18,13 @@ export default class extends Renderer {
     }
 
     render(ctx, frame) {
-
+        // Render Floor
         let floor = this._resources.get('floor');
         let floorWidth = floor.width*Config.SPRITE_SCALE;
         for(let x = 0; x < Config.TILE_X+1; x++) {
             for(let y = 0; y < Config.TILE_Y - 2; y++) {
                 ctx.drawImage(...[
-                    this._resources.get('floor'),
+                    floor,
                     this._floorOffset + floorWidth*x - floorWidth, // DX
                     (y+2)*floorWidth, // DX
                     floorWidth,
@@ -33,6 +33,7 @@ export default class extends Renderer {
             }
         }
 
+        // Render Wall
         let wall = this._resources.get('wall');
         let wallWidth = wall.width*Config.SPRITE_SCALE;
         for(let x = 0; x < Config.CANVAS_WIDTH/(wallWidth) + 1; x++) {
@@ -45,6 +46,7 @@ export default class extends Renderer {
             ]);
         }
 
+        // Calculate Offsets
         let xStep = Config.SPRITE_SIZE*Config.SPRITE_SCALE/16;
         if(this.room.isMoving) {
             this._floorOffset += xStep;

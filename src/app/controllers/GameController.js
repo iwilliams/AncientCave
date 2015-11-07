@@ -7,6 +7,7 @@ import Rng      from '../services/Rng';
 // Import Controllers
 import HostController     from './HostController';
 import ClientController   from './ClientController';
+import InputController    from './InputController';
 
 // Import Models
 import Player   from '../models/Player';
@@ -50,21 +51,10 @@ export default class {
             job = Player.JOB_CLAIRVOYANT;
         }
 
+        // Initialize Local Player
         let p1 = new Player(xOffset, yOffset, queryParams.name, job);
         this.players.set(p1.name, p1);
         promises.push(p1.init());
-
-        //let p2 = new Player(++xOffset, ++yOffset, "Stooks", Player.JOB_CLAIRVOYANT);
-        //players.push(p2);
-        //let p3 = new Player(--xOffset, ++yOffset, "Mecha", Player.JOB_VILLAIN);
-        //players.push(p3);
-        //let p4 = new Player(++xOffset, ++yOffset, "Space Squid", Player.JOB_HERBALIST);
-        //players.push(p4);
-
-        // Init all players
-        //promises.push(p2.init());
-        //promises.push(p3.init());
-        //promises.push(p4.init());
 
         //// Add a baddie
         this.monster = new Monster(1, 1, Monster.TYPE_WURM);
@@ -81,13 +71,6 @@ export default class {
 
         // Create all objects
         this.objects = [this.room, ...this.players.values(), this.monster, this.ui];
-        //this.objects = [...this.players.values()];
-        //this.objects = [this.room, ...this.players, this.necro];
-
-        // Attach input listeners
-        // using https://dmauro.github.io/Keypress/
-        this.listener = new window.keypress.Listener();
-        this.attachInput(this.listener);
 
         // Initialize Multiplayer Controller
         if(queryParams.host) {
@@ -114,15 +97,15 @@ export default class {
         this.multiplayerController.on("player-state", (player)=>{
             this.players.get(player.name).ready = player.ready;
             console.log(this.players);
+            this.updateRoomState();
         });
 
-        this.multiplayerController.on("click", (player)=>{
-            if(!this.room.isLooking) {
-                this.room.lookForTrouble();
-            } else {
-                //this.room.endBattle();
-                this.room.stopLooking();//lookForTrouble();
-            }
+        // Initialize Input Controller
+        this.inputController = new InputController();
+        this.inputController.on('click', ()=>{
+            p1.ready = !p1.ready;
+            this.multiplayerController.click();
+            this.updateRoomState();
         });
 
         promises.push(this.multiplayerController.init());
@@ -130,29 +113,7 @@ export default class {
         return Promise.all(promises);
     }
 
-    attachInput(listener) {
-
-        function lookForTrouble() {
-            this.multiplayerController.click();
-            if(!this.room.isLooking) {
-                this.room.lookForTrouble();
-            } else {
-                //this.room.endBattle();
-                this.room.stopLooking();//lookForTrouble();
-            }
-        }
-
-        window.onclick = () => {
-            this.multiplayerController.click();
-
-        };
-
-        //listener.simple_combo("t", ()=>{
-            //lookForTrouble();
-        //});
-    }
-
-    tick(frame) {
+    updateRoomState() {
         // Calculate if we should be moving based on player state
         // NEEDS TO BE MOVED
         let shouldMove = true;
@@ -166,7 +127,13 @@ export default class {
         } else if(!this.room.isLooking && shouldMove) {
             this.room.startLooking();
         }
+    }
 
+
+    /**
+     * Progress Game Logic by calling tick on every object
+     */
+    tick(frame) {
         // Render everything
         this.objects.forEach((object)=>{
             this._ctx.save();
