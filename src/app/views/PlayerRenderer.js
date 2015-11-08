@@ -22,38 +22,45 @@ export default class extends Renderer {
         let player      = this._resources.get('player');
         let playerWidth = Config.SPRITE_SIZE*Config.SPRITE_SCALE;
 
+        let xOffset = Config.TILE_X - 3;
+        if(this.player.position == "back") {
+            xOffset++;
+        }
+
         let shadow      = this._resources.get('shadow');
 
         let bubble       = this._resources.get('bubble');
         let bubbleWidth  = bubble.width*Config.SPRITE_SCALE;
         let bubbleHeight = bubble.height/5*Config.SPRITE_SCALE;
 
+        // Draw Shadow
         ctx.drawImage(...[
             shadow,
             0,
             0, // DY
             shadow.width, // dWidth
             shadow.width, // dHeight
-            this.player.xPos*(playerWidth), // sx ~ Replace with player X Pos
+            xOffset*(playerWidth), // sx ~ Replace with player X Pos
             this.player.yPos*(playerWidth) + (playerWidth) - (Config.SPRITE_SCALE*this._resources.get('shadow').height/1.75), // sy ~ Replace with player Y Pos
             playerWidth, // sWidth
             playerWidth  // sHeight
         ]);
 
 
-        // DRAW PLAYE SPRIET
+        // Draw Player Sprite
         ctx.drawImage(...[
             this._resources.get('sprite'),
             this.player.isWalking ? Config.SPRITE_SIZE*(this.frame) : 0, // DX
             0, // DY
             Config.SPRITE_SIZE, // dWidth
             Config.SPRITE_SIZE, // dHeight
-            this.player.xPos*(playerWidth), // sx ~ Replace with object X Pos
+            xOffset*(playerWidth), // sx ~ Replace with object X Pos
             this.player.yPos*(playerWidth), // sy ~ Replace with object Y Pos
             playerWidth, // sWidth
             playerWidth  // sHeight
         ]);
 
+        // Draw Bubble
         let bubbleOffset = 0;
         switch(this.player.action) {
             case "wait":
@@ -80,7 +87,7 @@ export default class extends Renderer {
                 bubbleOffset, // DY
                 bubble.width,  // dWidth
                 bubble.height/5, // dHeight
-                this.player.xPos*(playerWidth) - (bubbleWidth/1.5), // sx ~ Replace with object X Pos
+                xOffset*(playerWidth) - (bubbleWidth/1.5), // sx ~ Replace with object X Pos
                 this.player.yPos*(playerWidth) - (bubbleHeight/1.5), // sy ~ Replace with object Y Pos
                 bubbleWidth,  // sWidth
                 bubbleHeight  // sHeight

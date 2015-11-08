@@ -40,7 +40,6 @@ export default class {
         // Create 4 players
         let job = "";
         if(queryParams.job == "knight") {
-            console.log("knight");
             job = Player.JOB_KNIGHT;
         } else if (queryParams.job == "villain") {
             job = Player.JOB_VILLAIN;
@@ -88,8 +87,6 @@ export default class {
         // Initialize Multiplayer Controller
         if(queryParams.host) {
             this.multiplayerController = new MultiplayerController(p1, null, queryParams.host);
-            //this.multiplayerController.on("host-connect", (seed)=>{
-            //});
         } else {
             let seed = "TEST";
             this.rng = new Rng(seed);

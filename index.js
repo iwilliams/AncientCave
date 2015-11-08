@@ -26,7 +26,7 @@ app.on('ready', function() {
   mainWindow.center();
 
   // and load the index.html of the app.
-  mainWindow.loadUrl('file://' + __dirname + '/index.html');
+  mainWindow.loadUrl('file://' + __dirname + '/index.html?name=Mecha&job=knight');
 
   // Open the DevTools.
   mainWindow.openDevTools();

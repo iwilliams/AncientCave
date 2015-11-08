@@ -9,7 +9,8 @@ export default class extends BaseObject {
             'sprite': 'clairvoyant-sheet.png',
             'name':   'clairvoyant',
             'health': 60,
-            'mana': 40
+            'mana': 40,
+            'position': 'back'
         }
     }
 
@@ -18,7 +19,8 @@ export default class extends BaseObject {
             'sprite': 'herbalist-sheet.png',
             'name': 'herbalist',
             'health': 40,
-            'mana': 0
+            'mana': 0,
+            'position': 'back'
         }
     }
 
@@ -27,7 +29,8 @@ export default class extends BaseObject {
             'sprite': 'villain2-sheet.png',
             'name': 'villain',
             'health': 80,
-            'mana': 20
+            'mana': 20,
+            'position': 'front'
         }
     }
 
@@ -36,7 +39,8 @@ export default class extends BaseObject {
             'sprite': 'knight-sheet.png',
             'name': 'knight',
             'health': 100,
-            'mana': 0
+            'mana': 0,
+            'position': 'front'
         }
     }
 
@@ -46,6 +50,7 @@ export default class extends BaseObject {
         this.ready = false;
         this.isWalking = false;
         this.job = job;
+        this.position = job.position;
         this.maxHealth = job.health;
         this.currentHealth = job.health;
         this.action = "wait";
@@ -64,6 +69,14 @@ export default class extends BaseObject {
             "isWalking": this.ready,
             "action": this.action
         }
+    }
+
+    deserialize(player) {
+        this.name       = player.name;
+        this.job        = player.job;
+        this.ready      = player.ready;
+        this.action     = player.action;
+        this.isWalking  = player.ready;
     }
 
     setAction(action) {
