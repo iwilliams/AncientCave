@@ -12,11 +12,20 @@ export default class extends BaseObject {
      */
     constructor(width, height, offsetX, offsetY) {
         super();
-        this.bg      = 'dist/resources/images/ui-bg.png';
-        this.width   = width;
-        this.height  = height;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
+        this.bg                = 'dist/resources/images/ui-bg.png';
+        this.width             = width;
+        this.height            = height;
+        this.offsetX           = offsetX;
+        this.offsetY           = offsetY;
+        this.showBattleOptions = false;
+
+        this.battleOptions = [
+            "attack",
+            "ability",
+            "item",
+            "defend"
+        ]
+        this.selectedBattleOptionIndex = 0;
     }
 
     /**
@@ -32,5 +41,13 @@ export default class extends BaseObject {
 
     render(ctx) {
         this.renderer.render(ctx);
+    }
+
+    toggleBattleOptions() {
+        this.showBattleOptions = !this.showBattleOptions;
+    }
+
+    getSelectedBattleOption() {
+        return this.battleOptions[this.selectedBattleOptionIndex];
     }
 }

@@ -44,8 +44,11 @@ export default class extends BaseObject {
         super(xPos, yPos);
         this.name = name;
         this.ready = false;
-        this.job = job;
         this.isWalking = false;
+        this.job = job;
+        this.maxHealth = job.health;
+        this.currentHealth = job.health;
+        this.action = "wait";
     }
 
     init() {
@@ -58,7 +61,12 @@ export default class extends BaseObject {
             "name": this.name,
             "job": this.job,
             "ready": this.ready,
-            "isWalking": this.ready
+            "isWalking": this.ready,
+            "action": this.action
         }
+    }
+
+    setAction(action) {
+        this.action = action;
     }
 }

@@ -54,6 +54,7 @@ export default class {
         let p1 = new Player(xOffset, yOffset, queryParams.name, job);
         this.players.set(p1.name, p1);
         promises.push(p1.init());
+        window.player = p1;
 
         //// Add a baddie
         this.monster = new Monster(1, 1, Monster.TYPE_WURM);
@@ -67,6 +68,14 @@ export default class {
         // Initialize Room
         this.room = new Room(Room.TYPE_CAVE, [this.monster], this.players);
         promises.push(this.room.init());
+
+        this.room.on("start-battle", ()=>{
+            this.ui.toggleBattleOptions();
+        });
+
+        this.room.on("end-battle", ()=>{
+            this.ui.toggleBattleOptions();
+        });
 
         // Create all objects
         this.objects = new Set([
@@ -120,8 +129,14 @@ export default class {
         // Sync Player state
         this.multiplayerController.on("player-state", (message)=>{
             Logger.debug("Set player to Ready");
-            this.players.get(message.from).ready = message.data.player.ready;
-            this.updateRoomState();
+            let player = this.players.get(message.from);
+            player.ready = message.data.player.ready;
+            player.action = message.data.player.action;
+
+            if(!this.room.isBattle) {
+                if(player.ready) player.action = "ready";
+                this.updateRoomState();
+            }
         });
 
         /////////////////////////////
@@ -130,10 +145,56 @@ export default class {
 
         // Initialize Input Controller
         this.inputController = new InputController();
+
         this.inputController.on('click', ()=>{
-            p1.ready = !p1.ready;
-            this.multiplayerController.click();
-            this.updateRoomState();
+            if(!this.room.isBattle) {
+                p1.ready = !p1.ready;
+                if(player.ready) player.action = "ready";
+                this.multiplayerController.click();
+                this.updateRoomState();
+            }
+        });
+
+        this.inputController.on('enter', ()=>{
+            if(this.room.isBattle) {
+                p1.ready = !p1.ready;
+                p1.setAction(this.ui.getSelectedBattleOption());
+                this.multiplayerController.click();
+            }
+        });
+
+        this.inputController.on('up', ()=>{
+            Logger.debug('up');
+            if(this.ui.showBattleOptions) {
+                this.ui.selectedBattleOptionIndex = (this.ui.selectedBattleOptionIndex+2)%4;
+            }
+        });
+
+        this.inputController.on('down', ()=>{
+            Logger.debug('down');
+            if(this.ui.showBattleOptions) {
+                this.ui.selectedBattleOptionIndex = (this.ui.selectedBattleOptionIndex+2)%4;
+            }
+        });
+
+        this.inputController.on('left', ()=>{
+            Logger.debug('left');
+            if(this.ui.showBattleOptions) {
+                if(this.ui.selectedBattleOptionIndex == 0) this.ui.selectedBattleOptionIndex = 1;
+                else if(this.ui.selectedBattleOptionIndex == 1) this.ui.selectedBattleOptionIndex = 0;
+                else if(this.ui.selectedBattleOptionIndex == 3) this.ui.selectedBattleOptionIndex = 2;
+                else if(this.ui.selectedBattleOptionIndex == 2) this.ui.selectedBattleOptionIndex = 3;
+            }
+        });
+
+        this.inputController.on('right', ()=>{
+            Logger.debug('right');
+            if(this.ui.showBattleOptions) {
+                if(this.ui.selectedBattleOptionIndex == 0) this.ui.selectedBattleOptionIndex = 1;
+                else if(this.ui.selectedBattleOptionIndex == 1) this.ui.selectedBattleOptionIndex = 0;
+                else if(this.ui.selectedBattleOptionIndex == 3) this.ui.selectedBattleOptionIndex = 2;
+                else if(this.ui.selectedBattleOptionIndex == 2) this.ui.selectedBattleOptionIndex = 3;
+            }
         });
 
         return Promise.all(promises);

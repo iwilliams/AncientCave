@@ -1,7 +1,7 @@
-import BaseObject   from './BaseObject';
+import EventEmitter   from '../mixins/EventEmitter';
 import RoomRenderer from '../views/RoomRenderer';
 
-export default class extends BaseObject {
+export default class extends EventEmitter {
 
     // Static Room Types
     static get TYPE_CAVE() {
@@ -20,13 +20,13 @@ export default class extends BaseObject {
 
     constructor(type, enemies, players, encounterRate) {
         super();
-
         this.type = type;
         this.isMoving       = false;
         this.isBattle       = false;
         this.enemies        = enemies;
         this.players        = players;
         this.isLooking      = false;
+        this.isVisible      = true;
 
         this.encounterRate = encounterRate || 50;
     }
@@ -43,6 +43,7 @@ export default class extends BaseObject {
         this.isLooking = true;
         this.players.forEach((player)=>{
             player.isWalking = !player.isWalking;
+            player.action = "walk";
             console.log(player.isWalking);
         });
     }
@@ -62,6 +63,7 @@ export default class extends BaseObject {
             this.enemies.forEach((enemy)=>{
                 enemy.toggle();
             });
+            this.emit("end-battle");
         }
     }
 
@@ -76,7 +78,9 @@ export default class extends BaseObject {
         this.players.forEach((player)=>{
             player.isWalking = false;
             player.ready     = false;
+            player.action    = "wait";
         });
+        this.emit("start-battle");
     }
 
     setNextEncounter(ticks) {

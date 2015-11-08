@@ -30,5 +30,25 @@ export default class extends EventEmitter {
         listener.simple_combo("t", ()=>{
             this.emit("click");
         });
+
+        listener.simple_combo("up", ()=>{
+            this.emit("up");
+        });
+
+        listener.simple_combo("down", ()=>{
+            this.emit("down");
+        });
+
+        listener.simple_combo("left", ()=>{
+            this.emit("left");
+        });
+
+        listener.simple_combo("right", ()=>{
+            this.emit("right");
+        });
+
+        listener.simple_combo("enter", ()=>{
+            this.emit("enter");
+        });
     }
 }
