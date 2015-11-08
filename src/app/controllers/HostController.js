@@ -51,10 +51,7 @@ export default class extends MultiplayerController {
 
                     connection.send({
                         "event": "player-connect",
-                        "player": {
-                            "name": this._player.name,
-                            "job": this._player.job
-                        }
+                        "player": this._player.serialize()
                     });
                 });
 

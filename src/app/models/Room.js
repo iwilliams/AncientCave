@@ -11,6 +11,13 @@ export default class extends BaseObject {
         };
     }
 
+    static get TYPE_TEMPLE() {
+        return {
+            floor: 'grass.png',
+            wall: 'pillars.png'
+        };
+    }
+
     constructor(type, enemies, players, encounterRate) {
         super();
 

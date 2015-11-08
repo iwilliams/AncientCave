@@ -20,11 +20,15 @@ export default class extends Renderer {
     render(ctx, frame) {
         // Render Floor
         let floor = this._resources.get('floor');
-        let floorWidth = floor.width*Config.SPRITE_SCALE;
+        let floorWidth = Config.SPRITE_SIZE*Config.SPRITE_SCALE;
         for(let x = 0; x < Config.TILE_X+1; x++) {
-            for(let y = 0; y < Config.TILE_Y - 2; y++) {
+            for(let y = 0; y < Config.TILE_Y - 4; y++) {
                 ctx.drawImage(...[
                     floor,
+                    0,
+                    0,
+                    Config.SPRITE_SIZE, // dWidth
+                    Config.SPRITE_SIZE, // dHeight
                     this._floorOffset + floorWidth*x - floorWidth, // DX
                     (y+2)*floorWidth, // DX
                     floorWidth,

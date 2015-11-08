@@ -35,7 +35,7 @@ export default class {
         this.players = new Map();
         let promises = [];
 
-        let yOffset = 1.60;
+        let yOffset = 2.5;
         let xOffset = Config.TILE_X - 3;
 
         // Create 4 players
@@ -70,7 +70,12 @@ export default class {
         promises.push(this.room.init());
 
         // Create all objects
-        this.objects = [this.room, ...this.players.values(), this.monster, this.ui];
+        this.objects = [
+            this.room,
+            ...this.players.values(),
+            this.monster,
+            this.ui
+        ];
 
         // Initialize Multiplayer Controller
         if(queryParams.host) {
@@ -104,7 +109,7 @@ export default class {
         this.inputController = new InputController();
         this.inputController.on('click', ()=>{
             p1.ready = !p1.ready;
-            this.multiplayerController.click();
+            //this.multiplayerController.click();
             this.updateRoomState();
         });
 

@@ -7,28 +7,36 @@ export default class extends BaseObject {
     static get JOB_CLAIRVOYANT() {
         return {
             'sprite': 'clairvoyant-sheet.png',
-            'name':   'clairvoyant'
+            'name':   'clairvoyant',
+            'health': 60,
+            'mana': 40
         }
     }
 
     static get JOB_HERBALIST() {
         return {
             'sprite': 'herbalist-sheet.png',
-            'name': 'herbalist'
+            'name': 'herbalist',
+            'health': 40,
+            'mana': 0
         }
     }
 
     static get JOB_VILLAIN() {
         return {
             'sprite': 'villain2-sheet.png',
-            'name': 'villain'
+            'name': 'villain',
+            'health': 80,
+            'mana': 20
         }
     }
 
     static get JOB_KNIGHT() {
         return {
             'sprite': 'knight-sheet.png',
-            'name': 'knight'
+            'name': 'knight',
+            'health': 100,
+            'mana': 0
         }
     }
 
@@ -43,5 +51,12 @@ export default class extends BaseObject {
     init() {
         this.renderer = new PlayerRenderer(this);
         return this.renderer.init()
+    }
+
+    serialize() {
+        return {
+            "name": this.name,
+            "job": this.job
+        }
     }
 }
