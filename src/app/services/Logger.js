@@ -3,6 +3,10 @@ export default class {
         console.log(`%c${msg.toUpperCase()}`, 'font-size: 30px; background: #222; color: #bada55;');
     }
 
+    static debug(msg) {
+        console.log(`%c${msg}`, 'font-size: 15px; background: #222; color: #bada55;');
+    }
+
     static log(msg) {
         console.log(msg);
     }

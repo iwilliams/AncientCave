@@ -5,9 +5,8 @@ import Config   from '../../Config';
 import Rng      from '../services/Rng';
 
 // Import Controllers
-import HostController     from './HostController';
-import ClientController   from './ClientController';
-import InputController    from './InputController';
+import MultiplayerController     from './MultiplayerController';
+import InputController           from './InputController';
 
 // Import Models
 import Player   from '../models/Player';
@@ -70,50 +69,72 @@ export default class {
         promises.push(this.room.init());
 
         // Create all objects
-        this.objects = [
+        this.objects = new Set([
             this.room,
             ...this.players.values(),
             this.monster,
             this.ui
-        ];
+        ]);
 
         // Initialize Multiplayer Controller
         if(queryParams.host) {
-            this.multiplayerController = new ClientController(queryParams.host, p1);
-            this.multiplayerController.on("host-connect", (seed)=>{
-                this.rng = new Rng(seed);
-                this.room.setNextEncounter(this.rng.next() * 1000);
-            });
+            this.multiplayerController = new MultiplayerController(p1, null, queryParams.host);
+            //this.multiplayerController.on("host-connect", (seed)=>{
+            //});
         } else {
-            this.rng = new Rng("TEST");
-            this.room.setNextEncounter(this.rng.next() * 1000);
-            this.multiplayerController = new HostController(p1, "TEST");
+            let seed = "TEST";
+            this.rng = new Rng(seed);
+            this.multiplayerController = new MultiplayerController(p1, 'host', null, seed);
         }
+        promises.push(this.multiplayerController.init());
 
-        this.multiplayerController.on("player-connect", (player)=>{
-            console.log("add player");
-            let p = new Player(xOffset, ++yOffset, player.name, player.job);
+
+        ///////////////////////////////////
+        // LISTEN FOR MULTIPLAYER EVENTS //
+        ///////////////////////////////////
+
+        // Add player when peer connects
+        this.multiplayerController.on("peer-connect", (message)=>{
+            Logger.debug("Add player");
+            let p = new Player(xOffset, ++yOffset, message.data.player.name, message.data.player.job);
             p.init().then(()=>{
-                this.players.set(p.name, p);
-                this.objects.push(p);
+                Logger.debug(`Add player with id ${message.from}`);
+                this.players.set(message.from, p);
+                Logger.log(this.players);
+                this.objects.add(p);
             });
+
+            // If this is our first connection and we don't already have a seed then set it
+            if(!this.rng) {
+                this.rng = new Rng(message.data.seed);
+            }
         });
 
-        this.multiplayerController.on("player-state", (player)=>{
-            this.players.get(player.name).ready = player.ready;
-            console.log(this.players);
+        // Remove the peers player from the game
+        this.multiplayerController.on("peer-disconnect", (peer)=>{
+            let playerToDelete = this.players.get(peer)
+            this.players.delete(peer);
+            this.objects.delete(playerToDelete);
+        });
+
+        // Sync Player state
+        this.multiplayerController.on("player-state", (message)=>{
+            Logger.debug("Set player to Ready");
+            this.players.get(message.from).ready = message.data.player.ready;
             this.updateRoomState();
         });
+
+        /////////////////////////////
+        // LISTEN FOR INPUT EVENTS //
+        /////////////////////////////
 
         // Initialize Input Controller
         this.inputController = new InputController();
         this.inputController.on('click', ()=>{
             p1.ready = !p1.ready;
-            //this.multiplayerController.click();
+            this.multiplayerController.click();
             this.updateRoomState();
         });
-
-        promises.push(this.multiplayerController.init());
 
         return Promise.all(promises);
     }
@@ -128,8 +149,10 @@ export default class {
 
         // Decide if we need to start or end combat
         if(shouldMove && !this.room.isLooking) {
+            this.room.setNextEncounter(this.rng.next() * 500);
             this.room.lookForTrouble();
         } else if(!this.room.isLooking && shouldMove) {
+            this.room.setNextEncounter(this.rng.next() * 500);
             this.room.startLooking();
         }
     }

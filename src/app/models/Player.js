@@ -56,7 +56,9 @@ export default class extends BaseObject {
     serialize() {
         return {
             "name": this.name,
-            "job": this.job
+            "job": this.job,
+            "ready": this.ready,
+            "isWalking": this.ready
         }
     }
 }
