@@ -1,0 +1,24 @@
+{
+  "name": "ancientcave",
+  "description": "",
+  "main": "gulpfile.js",
+  "authors": [
+    "Ian Williams <ianwilliams633@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/iwilliams/AncientCave",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "rng-js": "~1.0.1",
+    "Keypress": "~2.1.3",
+    "peerjs": "~0.3.14"
+  }
+}

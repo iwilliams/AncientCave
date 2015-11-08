@@ -1,0 +1,18 @@
+{
+  "name": "rng-js",
+  "version": "1.0.1",
+  "main": "rng.js",
+  "description": "Seedable random number generator functions.",
+  "license": "Public Domain",
+  "homepage": "https://github.com/skeeto/rng-js",
+  "_release": "1.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.0.1",
+    "commit": "a7eda709f8caebb04a5a7b3ef938413611b37c8a"
+  },
+  "_source": "git://github.com/skeeto/rng-js.git",
+  "_target": "~1.0.1",
+  "_originalSource": "rng-js",
+  "_direct": true
+}
