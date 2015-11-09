@@ -44,6 +44,16 @@ export default class extends BaseObject {
         }
     }
 
+    static get JOB_NECROMANCER() {
+        return {
+            'sprite': 'necromancer-sheet.png',
+            'name': 'necromancer',
+            'health': 40,
+            'mana': 120,
+            'position': 'front'
+        }
+    }
+
     constructor(xPos, yPos, name, job) {
         super(xPos, yPos);
         this.name = name;
