@@ -23,9 +23,9 @@ export default class extends EventEmitter {
     }
 
     attachInput(listener) {
-        window.onclick = () => {
-            this.emit("click");
-        };
+        //window.onclick = () => {
+            //this.emit("click");
+        //};
 
         listener.simple_combo("t", ()=>{
             this.emit("click");

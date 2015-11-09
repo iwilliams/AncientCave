@@ -28,7 +28,7 @@ export default class {
      * @return Promise
      *
      */
-    init() {
+    init(name, job, id, host) {
         let queryParams = Utils.parseQuery(window.location.search);
 
         this.players = new Map();
@@ -38,21 +38,20 @@ export default class {
         let xOffset = Config.TILE_X - 3;
 
         // Create 4 players
-        let job = "";
-        if(queryParams.job == "knight") {
+        if(job == "knight") {
             job = Player.JOB_KNIGHT;
-        } else if (queryParams.job == "villain") {
+        } else if (job == "villain") {
             job = Player.JOB_VILLAIN;
-        } else if (queryParams.job == "herbalist") {
+        } else if (job == "herbalist") {
             job = Player.JOB_HERBALIST;
-        } else if (queryParams.job == "clairvoyant") {
+        } else if (job == "clairvoyant") {
             job = Player.JOB_CLAIRVOYANT;
-        }  else if (queryParams.job == "necromancer") {
+        }  else if (job == "necromancer") {
             job = Player.JOB_NECROMANCER;
         }
 
         // Initialize Local Player
-        let p1 = new Player(xOffset, yOffset, queryParams.name, job);
+        let p1 = new Player(xOffset, yOffset, name, job);
         this.players.set(p1.name, p1);
         promises.push(p1.init());
         window.player = p1;
@@ -87,12 +86,12 @@ export default class {
         ]);
 
         // Initialize Multiplayer Controller
-        if(queryParams.host) {
-            this.multiplayerController = new MultiplayerController(p1, null, queryParams.id, queryParams.host);
+        if(host) {
+            this.multiplayerController = new MultiplayerController(p1, null, id, host);
         } else {
             let seed = "TEST";
             this.rng = new Rng(seed);
-            this.multiplayerController = new MultiplayerController(p1, seed, queryParams.id);
+            this.multiplayerController = new MultiplayerController(p1, seed, id);
         }
         promises.push(this.multiplayerController.init());
 
@@ -145,20 +144,27 @@ export default class {
         // Initialize Input Controller
         this.inputController = new InputController();
 
-        this.inputController.on('click', ()=>{
-            if(!this.room.isBattle) {
-                p1.ready = !p1.ready;
-                if(player.ready) player.action = "ready";
-                this.multiplayerController.click();
-                this.updateRoomState();
-            }
-        });
+        //this.inputController.on('click', ()=>{
+            //if(!this.room.isBattle) {
+                //p1.ready = !p1.ready;
+                //if(player.ready) player.action = "ready";
+                //else player.action = "waiting";
+                //this.multiplayerController.click();
+                //this.updateRoomState();
+            //}
+        //});
 
         this.inputController.on('enter', ()=>{
             if(this.room.isBattle) {
                 p1.ready = !p1.ready;
                 p1.setAction(this.ui.getSelectedBattleOption());
                 this.multiplayerController.click();
+            } else {
+                p1.ready = !p1.ready;
+                if(player.ready) player.action = "ready";
+                else player.action = "waiting";
+                this.multiplayerController.click();
+                this.updateRoomState();
             }
         });
 
