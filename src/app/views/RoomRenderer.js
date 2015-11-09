@@ -18,6 +18,9 @@ export default class extends Renderer {
     }
 
     render(ctx, frame) {
+        this.frame      = (frame < Config.FPS%2) ? 0 : 1;
+        this.frame = frame%2;
+
         // Render Floor
         let floor = this._resources.get('floor');
         let floorWidth = Config.SPRITE_SIZE*Config.SPRITE_SCALE;
@@ -37,16 +40,30 @@ export default class extends Renderer {
             }
         }
 
+            //this._resources.get('sprite'),
+            //this.player.isWalking ? Config.SPRITE_SIZE*(this.frame) : 0, // DX
+            //0, // DY
+            //Config.SPRITE_SIZE, // dWidth
+            //Config.SPRITE_SIZE, // dHeight
+            //xOffset*(playerWidth), // sx ~ Replace with object X Pos
+            //this.player.yPos*(playerWidth), // sy ~ Replace with object Y Pos
+            //playerWidth, // sWidth
+            //playerWidth  // sHeight
+
         // Render Wall
         let wall = this._resources.get('wall');
         let wallWidth = wall.width*Config.SPRITE_SCALE;
         for(let x = 0; x < Config.CANVAS_WIDTH/(wallWidth) + 1; x++) {
             ctx.drawImage(...[
                 wall,
-                this._wallOffset + wallWidth*x - wallWidth,
-                0,
-                this._resources.get('wall').width*Config.SPRITE_SCALE, // sWidth
-                this._resources.get('wall').height*Config.SPRITE_SCALE // sWidth
+                0, // DX
+                wall.height/2*this.frame, //DY
+                wall.width,
+                wall.height/2,
+                this._wallOffset + wallWidth*x - wallWidth, //sx
+                0, //sy
+                wall.width*Config.SPRITE_SCALE,
+                wall.height*Config.SPRITE_SCALE/2
             ]);
         }
 
