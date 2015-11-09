@@ -47,6 +47,8 @@ export default class {
             job = Player.JOB_HERBALIST;
         } else if (queryParams.job == "clairvoyant") {
             job = Player.JOB_CLAIRVOYANT;
+        }  else if (queryParams.job == "necromancer") {
+            job = Player.JOB_NECROMANCER;
         }
 
         // Initialize Local Player
