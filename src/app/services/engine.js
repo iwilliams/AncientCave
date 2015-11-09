@@ -93,7 +93,7 @@ export default class {
     /**
      * Initialize the engine
      */
-    init() {
+    init(name, job, id, host) {
         let queryParams = Utils.parseQuery(window.location.search);
 
         this._element.appendChild(this._canvas);
@@ -103,7 +103,7 @@ export default class {
         //initialize the game controller
         //@todo need to pass params to this
         this.game = new GameController(this._ctx);
-        this.game.init().then(()=>{
+        this.game.init(name, job, id, host).then(()=>{
             console.log("Game Controller Initialized");
             this.then = Date.now();
             this.interval = 1000/Config.FPS;

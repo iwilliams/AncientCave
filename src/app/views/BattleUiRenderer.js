@@ -59,11 +59,11 @@ export default class extends UiRenderer {
             let healthBarXPos   = xpos + Config.TILE_SIZE*2;
             let healthBarYPos   = ypos - fontSize/2;
             let healthBarWidth  = Config.TILE_SIZE*2;
-            let healthBarHeight = fontSize;
+            let healthBarHeight = fontSize/2;
 
 
-            ctx.fillStyle = "#000";
-            ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
+            //ctx.fillStyle = "#000";
+            //ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
 
             // Render Player Health Fill
             ctx.fillStyle = "#FF0000";
@@ -78,6 +78,28 @@ export default class extends UiRenderer {
             ctx.fillStyle = "#FFF";
             ctx.fillText(...[
                 `${player.currentHealth}/${player.maxHealth}`,
+                healthBarXPos+healthBarWidth+2*Config.SPRITE_SCALE,
+                healthBarYPos
+            ]);
+
+            healthBarYPos += healthBarHeight*1.5;
+
+            //ctx.fillStyle = "#000";
+            //ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
+
+            // Render Player Health Fill
+            ctx.fillStyle = "#0000FF";
+            let manaPercentage = player.currentMana/player.maxMana;
+            ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth*manaPercentage, healthBarHeight);
+
+            // Render Player Health Stroke
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth   = 1*Config.SPRITE_SCALE;
+            ctx.strokeRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
+
+            ctx.fillStyle = "#FFF";
+            ctx.fillText(...[
+                `${player.currentMana}/${player.maxMana}`,
                 healthBarXPos+healthBarWidth+2*Config.SPRITE_SCALE,
                 healthBarYPos
             ]);

@@ -63,6 +63,8 @@ export default class extends BaseObject {
         this.position = job.position;
         this.maxHealth = job.health;
         this.currentHealth = job.health;
+        this.maxMana = job.mana;
+        this.currentMana = job.mana;
         this.action = "wait";
     }
 
