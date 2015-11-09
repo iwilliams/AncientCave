@@ -7,7 +7,7 @@ export default class extends EventEmitter {
     static get TYPE_CAVE() {
         return {
             floor: 'goodtile.png',
-            wall: 'pillars.png'
+            wall: 'shitwall.png'
         };
     }
 
