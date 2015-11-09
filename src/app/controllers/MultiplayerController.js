@@ -4,15 +4,16 @@ import Logger       from '../Services/Logger';
 
 
 export default class extends EventEmitter {
-    constructor(player, id, host, seed) {
+    constructor(player, seed, id, host) {
         super();
         this._player = player;
-        this._peers = new Map();
-        this._id = id || null;
-        this._seed = seed || null;
+        this._seed   = seed || null;
+        this._id     = id || null;
 
         if(host)
             this._host = host;
+
+        this._peers = new Map();
     }
 
     /**
@@ -40,6 +41,11 @@ export default class extends EventEmitter {
 
                 // When a peer connects handle it
                 this._peer.on('connection', (connection)=>{
+                    // Don't allow more than 4 players
+                    if(this._peers.size >= 4) {
+                        connection.close();
+                    }
+
                     connection.on('open', ()=>{
                         Logger.debug("Peer has connected");
                         Logger.log(connection);

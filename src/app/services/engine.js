@@ -117,7 +117,7 @@ export default class {
         window.addEventListener("resize", this.resize.bind(this));
 
         // Attach Fullscreen event
-        document.getElementsByTagName("button")[0].addEventListener("click", this.requestFullscreen.bind(this));
+        //document.getElementsByTagName("button")[0].addEventListener("click", this.requestFullscreen.bind(this));
 
         Logger.banner('Game Started');
     }

@@ -86,11 +86,11 @@ export default class {
 
         // Initialize Multiplayer Controller
         if(queryParams.host) {
-            this.multiplayerController = new MultiplayerController(p1, null, queryParams.host);
+            this.multiplayerController = new MultiplayerController(p1, null, queryParams.id, queryParams.host);
         } else {
             let seed = "TEST";
             this.rng = new Rng(seed);
-            this.multiplayerController = new MultiplayerController(p1, 'host', null, seed);
+            this.multiplayerController = new MultiplayerController(p1, seed, queryParams.id);
         }
         promises.push(this.multiplayerController.init());
 
