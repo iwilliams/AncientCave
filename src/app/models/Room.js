@@ -1,7 +1,19 @@
-import EventEmitter   from '../mixins/EventEmitter';
+import BaseObject     from './BaseObject'; // Can't call this Object b/c of conflict xD
 import RoomRenderer from '../views/RoomRenderer';
+import Logger       from '../services/Logger';
 
-export default class extends EventEmitter {
+let FILLABLE = new Set([
+    "enemies",
+    "type",
+    "isMoving",
+    "isBattle",
+    "isLooking",
+    "nextEncounter",
+    "encounterRate",
+    "tickCount"
+]);
+
+class Room extends BaseObject {
 
     // Static Room Types
     static get TYPE_CAVE() {
@@ -19,16 +31,34 @@ export default class extends EventEmitter {
     }
 
     constructor(type, enemies, players, encounterRate) {
-        super();
+        super(FILLABLE);
+        this.players        = players;
         this.type = type;
         this.isMoving       = false;
         this.isBattle       = false;
         this.enemies        = enemies;
-        this.players        = players;
         this.isLooking      = false;
-        this.isVisible      = true;
-
         this.encounterRate = encounterRate || 50;
+    }
+
+    attachEvents(eventBuss) {
+        eventBuss.on("player-state", ()=> {
+            let ready = true;
+
+            for(let player of this.players.values()) {
+                ready = player.ready && ready;
+            }
+
+            if(ready) {
+                if(!this.isLooking && !this.isBattle) {
+                    this.setNextEncounter(100);
+                    this.lookForTrouble();
+                } else {
+
+                }
+                eventBuss.emit("room-state");
+            }
+        });
     }
 
     init() {
@@ -41,11 +71,6 @@ export default class extends EventEmitter {
         if (this.isBattle) this.endBattle();
         this.isMoving  = true;
         this.isLooking = true;
-        this.players.forEach((player)=>{
-            player.isWalking = !player.isWalking;
-            player.action = "walk";
-            console.log(player.isWalking);
-        });
     }
 
     stopLooking() {
@@ -101,3 +126,5 @@ export default class extends EventEmitter {
         this.renderer.render(ctx, frame);
     }
 }
+
+export default Room;

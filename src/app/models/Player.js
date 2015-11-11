@@ -1,8 +1,28 @@
 import BaseObject     from './BaseObject'; // Can't call this Object b/c of conflict xD
 import PlayerRenderer from '../views/PlayerRenderer';
 
-export default class extends BaseObject {
+let FILLABLE = new Set([
+    "name",
+    "ready",
+    "isWalking",
+    "job",
+    "position",
+    "maxHealth",
+    "health",
+    "maxMana",
+    "mana",
+    "action",
+]);
 
+let STATES = new Set([
+    "idle",
+    "walking",
+    "waiting",
+    "action",
+    "busy"
+]);
+
+class Player extends BaseObject {
     // Static Room Types
     static get JOB_CLAIRVOYANT() {
         return {
@@ -54,18 +74,26 @@ export default class extends BaseObject {
         }
     }
 
-    constructor(xPos, yPos, name, job) {
-        super(xPos, yPos);
+    constructor(xPos, yPos, name, job, state) {
+        super(FILLABLE);
         this.name = name;
         this.ready = false;
         this.isWalking = false;
         this.job = job;
         this.position = job.position;
         this.maxHealth = job.health;
-        this.currentHealth = job.health;
+        this.health = job.health;
         this.maxMana = job.mana;
-        this.currentMana = job.mana;
+        this.mana = job.mana;
         this.action = "wait";
+        this.xPos = xPos || 0;
+        this.yPos = yPos || 0;
+
+        this.state = state || "idle";
+    }
+
+    static createFromState(obj) {
+        return new Player(obj.xpos, obj.ypos, obj.name, obj.job);
     }
 
     init() {
@@ -73,25 +101,9 @@ export default class extends BaseObject {
         return this.renderer.init()
     }
 
-    serialize() {
-        return {
-            "name": this.name,
-            "job": this.job,
-            "ready": this.ready,
-            "isWalking": this.ready,
-            "action": this.action
-        }
-    }
-
-    deserialize(player) {
-        this.name       = player.name;
-        this.job        = player.job;
-        this.ready      = player.ready;
-        this.action     = player.action;
-        this.isWalking  = player.ready;
-    }
-
     setAction(action) {
         this.action = action;
     }
 }
+
+export default Player;

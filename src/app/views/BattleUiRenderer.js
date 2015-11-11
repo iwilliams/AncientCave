@@ -67,7 +67,7 @@ export default class extends UiRenderer {
 
             // Render Player Health Fill
             ctx.fillStyle = "#FF0000";
-            let healthPercentage = player.currentHealth/player.maxHealth;
+            let healthPercentage = player.health/player.maxHealth;
             ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth*healthPercentage, healthBarHeight);
 
             // Render Player Health Stroke
@@ -77,7 +77,7 @@ export default class extends UiRenderer {
 
             ctx.fillStyle = "#FFF";
             ctx.fillText(...[
-                `${player.currentHealth}/${player.maxHealth}`,
+                `${player.health}/${player.maxHealth}`,
                 healthBarXPos+healthBarWidth+2*Config.SPRITE_SCALE,
                 healthBarYPos
             ]);
@@ -89,7 +89,7 @@ export default class extends UiRenderer {
 
             // Render Player Health Fill
             ctx.fillStyle = "#0000FF";
-            let manaPercentage = player.currentMana/player.maxMana;
+            let manaPercentage = player.mana/player.maxMana;
             ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth*manaPercentage, healthBarHeight);
 
             // Render Player Health Stroke
@@ -99,7 +99,7 @@ export default class extends UiRenderer {
 
             ctx.fillStyle = "#FFF";
             ctx.fillText(...[
-                `${player.currentMana}/${player.maxMana}`,
+                `${player.mana}/${player.maxMana}`,
                 healthBarXPos+healthBarWidth+2*Config.SPRITE_SCALE,
                 healthBarYPos
             ]);

@@ -16,53 +16,6 @@ export default class {
         this._canvas.height = Config.CANVAS_HEIGHT;
     }
 
-    // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe/
-    loop() {
-        requestAnimationFrame(this.loop.bind(this));
-
-        let now = Date.now();
-        let delta = now - this.then;
-
-        // If the fps interval is correct
-        if (delta > this.interval) {
-            // Calculate time since last frame
-            this.then = now - (delta % this.interval);
-
-            // Set up Rendering
-            this._frame = this._frame || 1;
-            this._frame = (this._frame%Config.FPS) ? this._frame : 1;
-
-            this._canvas.width = Config.CANVAS_WIDTH;
-            this._canvas.height = Config.CANVAS_HEIGHT;
-            this._ctx.imageSmoothingEnabled = false;
-
-            this._ctx.fillStyle = "#000";
-            this._ctx.fillRect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
-
-            this._canvas.width = Config.CANVAS_WIDTH;
-            this._canvas.height = Config.CANVAS_HEIGHT;
-            this._ctx.imageSmoothingEnabled = false;
-
-            // Progress game
-            this.game.tick(this._frame);
-
-            // Calculate next render cycle
-            let time_el = (this.then - this.first)/1000;
-            ++this.counter;
-            let fps = parseInt(this.counter/time_el);
-
-            // Show FPS
-            let fontSize          = 5*Config.SPRITE_SCALE;
-            this._ctx.font        = fontSize + "px Courier New";
-            this._ctx.fillStyle   = "#ffffff";
-
-            this._ctx.fillText(this._frame + "/" + Config.FPS + " " + fps + "fps", 20, 20);
-
-            // Increment Frame
-            this._frame++;
-        }
-    }
-
     /**
      * Resize Handler
      * @todo: does this belong here?
@@ -121,4 +74,52 @@ export default class {
 
         Logger.banner('Game Started');
     }
+
+    // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe/
+    loop() {
+        requestAnimationFrame(this.loop.bind(this));
+
+        let now = Date.now();
+        let delta = now - this.then;
+
+        // If the fps interval is correct
+        if (delta > this.interval) {
+            // Calculate time since last frame
+            this.then = now - (delta % this.interval);
+
+            // Set up Rendering
+            this._frame = this._frame || 1;
+            this._frame = (this._frame%Config.FPS) ? this._frame : 1;
+
+            this._canvas.width = Config.CANVAS_WIDTH;
+            this._canvas.height = Config.CANVAS_HEIGHT;
+            this._ctx.imageSmoothingEnabled = false;
+
+            this._ctx.fillStyle = "#000";
+            this._ctx.fillRect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
+
+            this._canvas.width = Config.CANVAS_WIDTH;
+            this._canvas.height = Config.CANVAS_HEIGHT;
+            this._ctx.imageSmoothingEnabled = false;
+
+            // Progress game
+            this.game.tick(this._frame);
+
+            // Calculate next render cycle
+            let time_el = (this.then - this.first)/1000;
+            ++this.counter;
+            let fps = parseInt(this.counter/time_el);
+
+            // Show FPS
+            let fontSize          = 5*Config.SPRITE_SCALE;
+            this._ctx.font        = fontSize + "px Courier New";
+            this._ctx.fillStyle   = "#ffffff";
+
+            this._ctx.fillText(this._frame + "/" + Config.FPS + " " + fps + "fps", 20, 20);
+
+            // Increment Frame
+            this._frame++;
+        }
+    }
+
 }

@@ -12,7 +12,9 @@ export default class extends BaseObject {
     }
 
     constructor(xPos, yPos, type) {
-        super(xPos, yPos);
+        super([]);
+        this.xPos = xPos;
+        this.ypos = yPos;
         this.type = type;
     }
 
