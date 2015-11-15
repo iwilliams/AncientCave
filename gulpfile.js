@@ -7,6 +7,7 @@ var gulp       = require('gulp'),
     uglify     = require('gulp-uglify');
 
 var defaultTasks = [];
+
 var bowerDir = function(dir) {
     return './bower_components/' + dir;
 };
@@ -17,9 +18,15 @@ var includes = {
     rngjs:   bowerDir('rng-js/')
 }
 
+var source = './src2/';
+
+var sourceDir = function(file) {
+    return source + file;
+}
+
 // Compile es6 code
 gulp.task('es6', function() {
-    browserify("./src/AncientCave.js", { debug: true })
+    browserify(sourceDir("AncientCave.js"), { debug: true })
       .transform(babelify)
       .bundle()
       .on("error", function (err) { console.log("Error : " + err.message); })
@@ -44,26 +51,27 @@ defaultTasks.push('vendor-scripts');
 // Watches script directories and rebuilds on change
 gulp.task('watch-scripts', function() {
     gulp.watch([
-        './src/**/*.js',
+        sourceDir('**/*.js'),
     ], function() {
         console.log("~~~ Rebuilding Scripts... ~~~");
     });
 
     gulp.watch([
-        './src/**/*.js',
+        sourceDir('**/*.js'),
     ], ['es6']);
 });
 defaultTasks.push('watch-scripts');
 
 gulp.task('move-resources', function() {
-    gulp.src('./src/resources/*/**')
+    gulp.src(sourceDir('resources/*/**'))
         .pipe(gulp.dest('./dist/resources'));
 });
 defaultTasks.push('move-resources');
 
 gulp.task('watch-resources', function() {
-    gulp.watch(['./src/resources/*/**'], ['move-resources']);
+    gulp.watch([sourceDir('resources/*/**')], ['move-resources']);
 });
 defaultTasks.push('watch-resources');
 
 gulp.task('default', defaultTasks);
+

@@ -1,8 +1,9 @@
 // Import Utils
-import Utils    from '../services/Utils';
-import Logger   from '../services/Logger';
-import Config   from '../../Config';
-import Rng      from '../services/Rng';
+import Utils     from '../services/Utils';
+import Logger    from '../services/Logger';
+import Config    from '../../Config';
+import Rng       from '../services/Rng';
+import EventBuss from '../services/EventBuss';
 
 // Import Controllers
 import MultiplayerController     from './MultiplayerController';
@@ -14,9 +15,6 @@ import Monster  from '../models/Monster';
 import Room     from '../models/Room';
 import Ui       from '../models/Ui';
 import BattleUi from '../models/BattleUi';
-
-// Event Buss
-import EventBuss from '../mixins/EventEmitter';
 
 export default class {
 
