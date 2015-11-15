@@ -77,32 +77,38 @@ class Player extends BaseObject {
     constructor(xPos, yPos, name, job, state) {
         super(FILLABLE);
         this.name = name;
-        this.ready = false;
-        this.isWalking = false;
         this.job = job;
         this.position = job.position;
         this.maxHealth = job.health;
         this.health = job.health;
         this.maxMana = job.mana;
         this.mana = job.mana;
-        this.action = "wait";
         this.xPos = xPos || 0;
         this.yPos = yPos || 0;
 
         this.state = state || "idle";
+
+        this._states = new Set([
+            "idle",
+            "ready",
+            "walking",
+            "attacking"
+        ]);
+        this.curentState = "idle";
+    }
+
+    set currentState(state) {
+        if(this._states.has(state) {
+            this._currentState = state;
+        }
+    }
+
+    get currentState() {
+        return this._currentState;
     }
 
     static createFromState(obj) {
         return new Player(obj.xpos, obj.ypos, obj.name, obj.job);
-    }
-
-    init() {
-        this.renderer = new PlayerRenderer(this);
-        return this.renderer.init()
-    }
-
-    setAction(action) {
-        this.action = action;
     }
 }
 

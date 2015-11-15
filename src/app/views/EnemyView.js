@@ -5,18 +5,20 @@ import Config from '../../Config';
 export default class extends Renderer {
     constructor(monster) {
         super()
-        this.monster = monster;
-    }
+        this._monster = monster;
 
-    init() {
-        return Promise.all([
-            this.loadResource('sprite', this.monster.type.sprite),
-        ]);
+        this._images = [
+            {
+                "name": "sprite",
+                "image": this._monster.type.sprite,
+            }
+        ];
     }
 
     render(ctx, frame) {
         this.frame = (frame < Config.FPS/2) ? 0 : 1;
         let sprite = this._resources.get('sprite');
+
         ctx.drawImage(...[
             sprite,
             sprite.width/3*this.frame,

@@ -5,16 +5,20 @@ import Config from '../../Config';
 export default class extends Renderer {
     constructor(object) {
         super();
-        this.room = object;
+        this._room = object;
         this._floorOffset = 0;
         this._wallOffset  = 0;
-    }
 
-    init() {
-        return Promise.all([
-            this.loadResource("floor", this.room.type.floor),
-            this.loadResource("wall",  this.room.type.wall)
-        ]);
+        this._images = [
+            {
+                "name": "floor",
+                "image": this._room.type.floor,
+            },
+            {
+                "name": "wall",
+                "image": this._room.type.wall,
+            }
+        ];
     }
 
     render(ctx, frame) {
@@ -39,16 +43,6 @@ export default class extends Renderer {
                 ]);
             }
         }
-
-            //this._resources.get('sprite'),
-            //this.player.isWalking ? Config.SPRITE_SIZE*(this.frame) : 0, // DX
-            //0, // DY
-            //Config.SPRITE_SIZE, // dWidth
-            //Config.SPRITE_SIZE, // dHeight
-            //xOffset*(playerWidth), // sx ~ Replace with object X Pos
-            //this.player.yPos*(playerWidth), // sy ~ Replace with object Y Pos
-            //playerWidth, // sWidth
-            //playerWidth  // sHeight
 
         // Render Wall
         let wall = this._resources.get('wall');

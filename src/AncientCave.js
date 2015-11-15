@@ -1,4 +1,4 @@
-import Engine from './app/services/Engine';
+import Engine from './app/Engine';
 
 // Create new instance of game
 var engine = new Engine(document.body);

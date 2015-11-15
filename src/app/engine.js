@@ -1,46 +1,19 @@
+import Config   from '../Config';
+
 // Import Utils
-import Utils    from './Utils';
-import Logger   from './Logger';
-import Config   from '../../Config';
-import Rng      from './Rng';
+import Utils    from './services/Utils';
+import Logger   from './services/Logger';
+import Rng      from './services/Rng';
 
 // Import Controllers
 import GameController     from '../controllers/GameController';
 
+// Import View
+import View from './views/Canvas2d';
+
 export default class {
     constructor(element) {
-        this._element = element;
-        this._canvas = document.createElement('canvas');
-
-        this._canvas.width = Config.CANVAS_WIDTH;
-        this._canvas.height = Config.CANVAS_HEIGHT;
-    }
-
-    /**
-     * Resize Handler
-     * @todo: does this belong here?
-     */
-    resize() {
-        Config.calculate();
-        this._canvas.width = Config.CANVAS_WIDTH;
-        this._canvas.height = Config.CANVAS_HEIGHT;
-        this._ctx.imageSmoothingEnabled = false;
-    }
-
-    /**
-     * Request the game goes full screen, will fullscreen the canvas element
-     * Found: https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API
-     */
-    requestFullscreen() {
-        if (this._canvas.requestFullscreen) {
-            this._canvas.requestFullscreen();
-        } else if (this._canvas.msRequestFullscreen) {
-            this._canvas.msRequestFullscreen();
-        } else if (this._canvas.mozRequestFullScreen) {
-            this._canvas.mozRequestFullScreen();
-        } else if (this._canvas.webkitRequestFullscreen) {
-            this._canvas.webkitRequestFullscreen();
-        }
+        this._view = new View(element);
     }
 
     /**
@@ -48,10 +21,6 @@ export default class {
      */
     init(name, job, id, host) {
         let queryParams = Utils.parseQuery(window.location.search);
-
-        this._element.appendChild(this._canvas);
-        this._ctx = this._canvas.getContext('2d');
-        this._ctx.imageSmoothingEnabled = false;
 
         //initialize the game controller
         //@todo need to pass params to this
@@ -104,6 +73,7 @@ export default class {
 
             // Progress game
             this.game.tick(this._frame);
+            this.renderer.tick(this._frame);
 
             // Calculate next render cycle
             let time_el = (this.then - this.first)/1000;
