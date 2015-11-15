@@ -8,6 +8,7 @@ import Config from '../../Config';
 import PlayerView   from './PlayerView';
 import EnemyView    from './EnemyView';
 import RoomView     from './RoomView';
+import MainMenuView from './MainMenuView';
 
 export default class extends EventEmitter {
     constructor() {
@@ -91,23 +92,39 @@ export default class extends EventEmitter {
         this._ctx.fillRect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
 
         // Consolidate all Views in render order
-        let views = [
+        let views = [];
             //this._roomView,
             //...this._enemyViews.values(),
-            ...this._playerViews.values(),
+            //...this._playerViews.values(),
             //this._uiView
-        ];
+            //
+        let gameState = this._game.currentState;
+        switch(gameState) {
+            case "main menu":
+                views = this.getMainMenuViews();
+                break;
+        }
 
         for(let view of views)  {
             view.render(this._ctx, frame);
         }
     }
 
+    getMainMenuViews() {
+        let views = [];
+
+        if(this._mainMenuView) {
+            views.push(this._mainMenuView);
+        }
+
+        return views;
+    }
+
     /**
      * Listen for game events so we can adjust renderer
      */
     listenToGameEvents(game) {
-        game.on("init", ()=> {
+        game.on("game-start", ()=> {
             this.then = Date.now();
             this.interval = 1000/Config.FPS;
             this.first = this.then;
@@ -115,18 +132,25 @@ export default class extends EventEmitter {
             window.requestAnimationFrame(this.loop.bind(this));
         });
 
+        game.on("add-main-menu", (mainMenu)=> {
+            let mainMenuView = new MainMenuView(mainMenu);
+            mainMenuView.init().then(()=>{
+                this._mainMenuView = mainMenuView;
+            });
+        });
+
         game.on("add-player", (player)=>{
             // Create a new player view
             let playerView = new PlayerView(player);
 
             // Inititalize player view
-            //playerView.init().then(()=>{
+            playerView.init().then(()=>{
                 // Decide what to do after initialized
                 if(this._playerViews)
                     this._playerViews.add(playerView);
                 else
                     this._playerViews = new Set([playerView]);
-            //});
+            });
         });
 
         game.on("add-enemy", (enemy)=>{

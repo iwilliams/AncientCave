@@ -73,19 +73,10 @@ class Player extends BaseModel {
         }
     }
 
-    constructor(xPos, yPos, name, job, state) {
+    constructor(name, id) {
         super(FILLABLE);
-        this.name = name;
-        this.job = job;
-        this.position = job.position;
-        this.maxHealth = job.health;
-        this.health = job.health;
-        this.maxMana = job.mana;
-        this.mana = job.mana;
-        this.xPos = xPos || 0;
-        this.yPos = yPos || 0;
-
-        this.state = state || "idle";
+        this._name = name;
+        this._id = id;
 
         this._states = new Set([
             "idle",
@@ -94,6 +85,20 @@ class Player extends BaseModel {
             "attacking"
         ]);
         this.curentState = "idle";
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    get id() {
+        return this._id;
+    }
+
+    init() {
+        return new Promise((res, rej)=>{
+            res();
+        });
     }
 }
 

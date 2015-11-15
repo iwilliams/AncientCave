@@ -9,6 +9,7 @@ export default class {
      */
     init() {
         return new Promise((res, rej)=>{
+            res();
             let resourcePromises = [];
             for(let image of this._images) {
                 ResourceService.loadImage(image.name, image.image);

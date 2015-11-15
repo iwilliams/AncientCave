@@ -8,13 +8,13 @@ import Config    from '../../Config';
 import Rng       from '../services/Rng';
 
 // Import Models
-import Player   from './objects/Player';
-import Monster  from './objects/Monster';
-import Room     from './objects/Room';
-import Ui       from './objects/Ui';
-import BattleUi from './objects/BattleUi';
+import BaseModel from './BaseModel';
+import Player    from './objects/Player';
+import Monster   from './objects/Monster';
+import Room      from './objects/Room';
+import MainMenu  from './objects/MainMenu';
 
-export default class extends EventEmitter {
+export default class extends BaseModel {
 
     constructor() {
         super();
@@ -37,7 +37,7 @@ export default class extends EventEmitter {
         return new Promise((res, rej)=>{
             this._dispatcher = dispatcher;
 
-            this.players = new Map();
+            this._players = new Map();
 
             // LISTEN FOR EVENTS
             this.listenToDispatcher(this._dispatcher);
@@ -46,7 +46,18 @@ export default class extends EventEmitter {
         });
     }
 
+    /**
+     * Start the game
+     */
+    start() {
+        this._mainMenu = new MainMenu();
+        this.emit("add-main-menu", this._mainMenu);
+        this.emit("game-start");
+    }
+
     listenToDispatcher(dispatcher) {
+        dispatcher.on("game-start", this.start.bind(this));
+
         // Add player when peer connects
         dispatcher.on("add-player", (message)=>{
             Logger.debug("Game: Add Player message recieved");

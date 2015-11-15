@@ -22,10 +22,12 @@ export default class {
      * Initialize the engine
      */
     init() {
-        return Promise.all([
+        Promise.all([
             this._game.init(this._dispatcher),
             this._view.init(this._game),
             this._dispatcher.init(this._view)
-        ]);
+        ]).then(()=>{
+            this._dispatcher.emit("game-start");
+        });
     }
 }
