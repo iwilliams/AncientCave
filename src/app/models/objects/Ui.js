@@ -1,7 +1,6 @@
-import UiRenderer from '../views/UiRenderer';
-import BaseObject from './BaseObject'; // Can't call this Object b/c of conflict xD
+import BaseModel from '../BaseModel'; // Can't call this Object b/c of conflict xD
 
-export default class extends BaseObject {
+export default class extends BaseModel {
     /**
      * Creates a UI window
      *
@@ -11,6 +10,7 @@ export default class extends BaseObject {
      * @param offsetY - % Y offset
      */
     constructor(width, height, offsetX, offsetY) {
+        super();
         this._battleOptions = [
             "attack",
             "ability",
@@ -21,8 +21,8 @@ export default class extends BaseObject {
         this._roomOptions = [
             "ready",
             "ability",
-            "item"
-            "manage",
+            "item",
+            "manage"
         ];
     }
 }

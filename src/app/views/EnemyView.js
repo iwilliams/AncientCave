@@ -1,8 +1,8 @@
-import Renderer from './Renderer';
+import ObjectView      from './ObjectView';
 import Utils from '../services/Utils';
 import Config from '../../Config';
 
-export default class extends Renderer {
+export default class extends ObjectView {
     constructor(monster) {
         super()
         this._monster = monster;

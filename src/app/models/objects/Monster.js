@@ -1,7 +1,6 @@
-import BaseObject from './BaseObject'; // Can't call this Object b/c of conflict xD
-import MonsterRenderer from '../views/MonsterRenderer';
+import BaseModel from '../BaseModel';
 
-export default class extends BaseObject {
+export default class extends BaseModel {
 
     // Static Room Types
     static get TYPE_WURM() {
@@ -16,10 +15,5 @@ export default class extends BaseObject {
         this.xPos = xPos;
         this.ypos = yPos;
         this.type = type;
-    }
-
-    init() {
-        this.renderer = new MonsterRenderer(this);
-        return this.renderer.init();
     }
 }

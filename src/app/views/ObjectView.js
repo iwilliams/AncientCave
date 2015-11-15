@@ -11,7 +11,7 @@ export default class {
         return new Promise((res, rej)=>{
             let resourcePromises = [];
             for(let image of this._images) {
-                ResourceService.loadImage(image.name, image.image),
+                ResourceService.loadImage(image.name, image.image);
             }
 
             Promise.all(resourcePromises).then((images)=>{

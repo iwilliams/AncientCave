@@ -1,7 +1,7 @@
-import Renderer from './Renderer';
 import Config from '../../Config';
+import ObjectView      from './ObjectView';
 
-export default class extends Renderer {
+export default class extends ObjectView {
     constructor(ui) {
         super();
         this.ui = ui;

@@ -1,5 +1,4 @@
-import BaseObject     from './BaseObject'; // Can't call this Object b/c of conflict xD
-import PlayerRenderer from '../views/PlayerRenderer';
+import BaseModel     from '../BaseModel'; // Can't call this Object b/c of conflict xD
 
 let FILLABLE = new Set([
     "name",
@@ -22,7 +21,7 @@ let STATES = new Set([
     "busy"
 ]);
 
-class Player extends BaseObject {
+class Player extends BaseModel {
     // Static Room Types
     static get JOB_CLAIRVOYANT() {
         return {
@@ -95,20 +94,6 @@ class Player extends BaseObject {
             "attacking"
         ]);
         this.curentState = "idle";
-    }
-
-    set currentState(state) {
-        if(this._states.has(state) {
-            this._currentState = state;
-        }
-    }
-
-    get currentState() {
-        return this._currentState;
-    }
-
-    static createFromState(obj) {
-        return new Player(obj.xpos, obj.ypos, obj.name, obj.job);
     }
 }
 

@@ -4,14 +4,13 @@ import Logger       from '../Services/Logger';
 
 
 export default class extends EventEmitter {
-    constructor(player, seed, id, host) {
+    constructor(name, host) {
         super();
-        this._player = player;
-        this._seed   = seed || null;
-        this._id     = id || null;
-
+        this._name = name;
         if(host)
             this._host = host;
+        else
+            this._id = "host";
 
         this._peers = new Map();
     }
@@ -66,6 +65,7 @@ export default class extends EventEmitter {
         this._peers.set(connection.peer, peer);
 
         connection.on('data',  this.handleData.bind(this));
+
         connection.on('close', ()=>{
             this.removePeer(peer);
         });
@@ -78,11 +78,9 @@ export default class extends EventEmitter {
             "event": "peer-connect",
             "from": this._id,
             "data": {
-                "seed": this._seed
+                "name": this._name
             }
         }
-
-        message.data.player = this._player.serialize();
 
         let peers = [];
         for(let peer of this._peers.keys()) {
@@ -93,7 +91,7 @@ export default class extends EventEmitter {
         Logger.debug(`Sending peer-connect message to peer with id ${peer}`);
         Logger.log(message);
         peer.connection.send(message);
-        peer.hasSentPlayer = true;
+        peer.hasConnected = true;
     }
 
     removePeer(peer) {
@@ -106,12 +104,10 @@ export default class extends EventEmitter {
         Logger.debug(`Message recieved from peer with id ${message.from}`);
         Logger.log(message);
 
+        // Grab data from message
         let data = message.data;
 
         if(message.event == "peer-connect") {
-            Logger.debug('Current connections');
-            Logger.log(this._peers);
-
             // See if this peer knows about any other peers and add if we don't know them
             for(let peer of data.peers) {
                 if(!this._peers.get(peer) && peer !== this._id) {
@@ -120,36 +116,16 @@ export default class extends EventEmitter {
                 }
             }
 
-            Logger.debug('Check if we need to send message to message sender');
-            Logger.log(this._peers.get("host"));
-            if(this._peers.get(message.from) && !this._peers.get(message.from).hasSentPlayer) {
+            // See if we have already connected to this peer
+            if(this._peers.get(message.from) && !this._peers.get(message.from).hasConnected) {
                 this.connectToPeer(this._peers.get(message.from));
             }
-
-            Logger.log(this._connections);
 
             this.emit("peer-connect", message);
         }
 
         if(message.event == "player-state") {
             this.emit("player-state", message);
-        }
-    }
-
-    click() {
-        if(this._peers) {
-            for(let peer of this._peers.values()) {
-
-                let message = {
-                    "event": "player-state",
-                    "from": this._id,
-                    "data": {
-                        "player": this._player.serialize()
-                    }
-                };
-
-                peer.connection.send(message);
-            }
         }
     }
 }

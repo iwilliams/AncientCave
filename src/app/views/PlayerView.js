@@ -28,6 +28,10 @@ export default class extends ObjectView {
     render(ctx, frame) {
         this.frame      = (frame < Config.FPS/2) ? 0 : 1;
 
+        let playerWidth = Config.SPRITE_SIZE*Config.SPRITE_SCALE;
+        ctx.fillText(this._player.name, 0, this._player.yPos*playerWidth);
+
+        /**
         let player      = this._resources.get('player');
         let playerWidth = Config.SPRITE_SIZE*Config.SPRITE_SCALE;
 
@@ -102,5 +106,6 @@ export default class extends ObjectView {
                 bubbleHeight  // sHeight
             ]);
         }
+        **/
     }
 }
