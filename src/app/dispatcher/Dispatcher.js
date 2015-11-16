@@ -1,5 +1,6 @@
 import Logger       from '../services/Logger';
 import EventEmitter from '../mixins/EventEmitter';
+import MultiplayerController from '../controllers/MultiplayerController';
 
 export default class extends EventEmitter {
     constructor() {
@@ -12,22 +13,43 @@ export default class extends EventEmitter {
     }
 
     registerViewMessages(view) {
-        view.on("join-mp", this.joinMultiplayerGame.bind(this));
-        view.on("host-mp", this.hostMultiplayerGame.bind(this));
+        view.on("start-mp", this.initMultiplayerGame.bind(this));
+        view.on("leave-game", ()=>{
+            this.leaveGame()
+        });
+
+        view.on("ready", ()=>{
+            this._multiplayerController.playerState("ready");
+            this.emit("local-player-state", {
+                "state": "ready"
+            });
+        });
     }
 
-    joinMultiplayerGame(message) {
-        this._multiplayerController = new MultiplayerController(message.data.name, message.data.hostId);
-        this.multiplayerController.init().then(()=>{
-            registerMultiplayerEvents(this._multiplayerController);
-        })
+    initMultiplayerGame(message) {
+        let args = [];
+        // Build args
+        if(message.hostId) {
+            args = [message.name, message.hostId];
+        } else {
+            args = [message.name];
+        }
+        // Init mp controller
+        this._multiplayerController = new MultiplayerController(...args);
+        this._multiplayerController.init().then(()=>{
+            this.registerMultiplayerEvents(this._multiplayerController);
+            Logger.debug("Dispatcher: Broadcast Add Player Message");
+            this.emit("add-local-player", {
+                "id": this._multiplayerController.id,
+                "name": message.name
+            });
+            this.emit("game-state", "lobby");
+        });
     }
 
-    hostMultiplayerGame(message) {
-        this._multiplayerController = new MultiplayerController(message.name);
-        this.multiplayerController.init().then(()=>{
-            registerMultiplayerEvents(this._multiplayerController);
-        })
+    leaveGame() {
+        this._multiplayerController.disconnect();
+        this.emit("game-state", "main menu");
     }
 
     /**
@@ -38,7 +60,7 @@ export default class extends EventEmitter {
         Logger.log(message);
 
         Logger.debug("Dispatcher: Broadcast Add Player Message");
-        this.emit("add-player", {
+        this.emit("add-remote-player", {
             "id": message.from,
             "name": message.data.name
         });
@@ -57,8 +79,12 @@ export default class extends EventEmitter {
         });
     }
 
-    registerMultiplaerEvents(multiplayerService) {
-        multiplaerService.on("peer-connect",    this.peerConnect.bind(this));
-        multiplaerService.on("peer-disconnect", this.peerDisconnect.bind(this));
+    registerMultiplayerEvents(multiplayerService) {
+        multiplayerService.on("peer-connect",    this.peerConnect.bind(this));
+        multiplayerService.on("peer-disconnect", this.peerDisconnect.bind(this));
+
+        multiplayerService.on("player-state", (message)=>{
+            this.emit("remote-player-state", message);
+        });
     }
 }

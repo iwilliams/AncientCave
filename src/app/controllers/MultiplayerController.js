@@ -15,6 +15,10 @@ export default class extends EventEmitter {
         this._peers = new Map();
     }
 
+    get id() {
+        return this._id;
+    }
+
     /**
      * Initialize this Controller
      *
@@ -100,6 +104,25 @@ export default class extends EventEmitter {
         this._peers.delete(peer.connection.peer);
     }
 
+    disconnect() {
+        this._peer.destroy();
+    }
+
+    playerState(state) {
+        if(this._peers) {
+            for(let peer of this._peers.values()) {
+                let message = {
+                    "event": "player-state",
+                    "data": {
+                        "id": this._id,
+                        "state": state
+                    }
+                };
+                peer.connection.send(message);
+            }
+        }
+    }
+
     handleData(message) {
         Logger.debug(`Message recieved from peer with id ${message.from}`);
         Logger.log(message);
@@ -125,7 +148,7 @@ export default class extends EventEmitter {
         }
 
         if(message.event == "player-state") {
-            this.emit("player-state", message);
+            this.emit("player-state", message.data);
         }
     }
 }

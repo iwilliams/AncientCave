@@ -21,6 +21,6 @@ export default class extends EventEmitter {
         listener.simple_combo("right", () => this.emit("right"));
         listener.simple_combo("l", () => this.emit("right"));
 
-        listener.simple_combo("enter", ()=> this.emeit("enter"));
+        listener.simple_combo("enter", ()=> this.emit("confirm"));
     }
 }

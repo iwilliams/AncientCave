@@ -3,12 +3,14 @@ import EventEmitter from '../mixins/EventEmitter';
 // Import Services
 import InputService from '../services/KeyboardInputService';
 import Config from '../../Config';
+import Logger from '../services/Logger';
 
 // Import views
 import PlayerView   from './PlayerView';
 import EnemyView    from './EnemyView';
 import RoomView     from './RoomView';
 import MainMenuView from './MainMenuView';
+import LobbyView    from './LobbyView';
 
 export default class extends EventEmitter {
     constructor() {
@@ -19,6 +21,8 @@ export default class extends EventEmitter {
 
         this._canvas.width = Config.CANVAS_WIDTH;
         this._canvas.height = Config.CANVAS_HEIGHT;
+
+        this._views = new Set();
     }
 
     /**
@@ -35,6 +39,8 @@ export default class extends EventEmitter {
     init(game) {
         this._game = game;
 
+        this._inputService = new InputService();
+
         this._element.appendChild(this._canvas);
         this._ctx = this._canvas.getContext('2d');
         this._ctx.imageSmoothingEnabled = false;
@@ -44,7 +50,7 @@ export default class extends EventEmitter {
         window.addEventListener("resize", this.resize.bind(this));
 
         this.listenToGameEvents(this._game);
-        this.registerInputHandlers();
+        this.registerInputHandlers(this._inputService);
     }
 
     // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe/
@@ -84,28 +90,14 @@ export default class extends EventEmitter {
     }
 
     render(frame) {
-        this._canvas.width = Config.CANVAS_WIDTH;
-        this._canvas.height = Config.CANVAS_HEIGHT;
+        this._canvas.width              = Config.CANVAS_WIDTH;
+        this._canvas.height             = Config.CANVAS_HEIGHT;
         this._ctx.imageSmoothingEnabled = false;
 
         this._ctx.fillStyle = "#000";
         this._ctx.fillRect(0, 0, Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT);
 
-        // Consolidate all Views in render order
-        let views = [];
-            //this._roomView,
-            //...this._enemyViews.values(),
-            //...this._playerViews.values(),
-            //this._uiView
-            //
-        let gameState = this._game.currentState;
-        switch(gameState) {
-            case "main menu":
-                views = this.getMainMenuViews();
-                break;
-        }
-
-        for(let view of views)  {
+        for(let view of this._views)  {
             view.render(this._ctx, frame);
         }
     }
@@ -120,23 +112,38 @@ export default class extends EventEmitter {
         return views;
     }
 
+    startRender() {
+        this.then = Date.now();
+        this.interval = 1000/Config.FPS;
+        this.first = this.then;
+        this.counter = 0;
+        this._rendering = true;
+        window.requestAnimationFrame(this.loop.bind(this));
+    }
     /**
      * Listen for game events so we can adjust renderer
      */
     listenToGameEvents(game) {
-        game.on("game-start", ()=> {
-            this.then = Date.now();
-            this.interval = 1000/Config.FPS;
-            this.first = this.then;
-            this.counter = 0;
-            window.requestAnimationFrame(this.loop.bind(this));
-        });
-
-        game.on("add-main-menu", (mainMenu)=> {
-            let mainMenuView = new MainMenuView(mainMenu);
-            mainMenuView.init().then(()=>{
-                this._mainMenuView = mainMenuView;
-            });
+        game.on("game-state", (message)=> {
+            Logger.debug("View Game State Event");
+            Logger.log(message);
+            if(message == "main menu") {
+                // If we aren't rendering then start
+                if(!this._rendering) {
+                    this.startRender();
+                }
+                let mainMenuView = new MainMenuView(game.mainMenu, this);
+                mainMenuView.init().then(()=>{
+                    this._mainMenuView = mainMenuView;
+                    this._views = new Set([this._mainMenuView]);
+                });
+            } else if (message == "lobby") {
+                let lobbyView = new LobbyView(game.lobby, game.players, this);
+                lobbyView.init().then(()=>{
+                    this._lobbyView = lobbyView;
+                    this._views = new Set([this._lobbyView]);
+                });
+            }
         });
 
         game.on("add-player", (player)=>{
@@ -179,9 +186,65 @@ export default class extends EventEmitter {
     }
 
     /**
-     * Register input to create events
+     * Register input to alter view and see if we need to send envents
      */
-    registerInputHandlers() {
-        return;
+    registerInputHandlers(input) {
+        // Up input
+        input.on("up", ()=>{
+            let gameState = this._game.currentState;
+            switch(gameState) {
+                case "main menu":
+                    this._mainMenuView.up();
+                    break;
+            }
+        });
+
+        // Down Input
+        input.on("down", ()=>{
+            let gameState = this._game.currentState;
+            switch(gameState) {
+                case "main menu":
+                    this._mainMenuView.down();
+                    break;
+            }
+        });
+
+        // Left Input
+        input.on("left", ()=>{
+            let gameState = this._game.currentState;
+            switch(gameState) {
+                case "lobby":
+                    this._lobbyView.left();
+                    break;
+            }
+        });
+
+        // Right Input
+        input.on("right", ()=>{
+            let gameState = this._game.currentState;
+            switch(gameState) {
+                case "lobby":
+                    this._lobbyView.right();
+                    break;
+            }
+        });
+
+        // Confirm Input
+        input.on("confirm", ()=>{
+            let gameState = this._game.currentState;
+            switch(gameState) {
+                case "main menu":
+                    this._mainMenuView.confirm(this);
+                    break;
+                case "lobby":
+                    this._lobbyView.confirm();
+                    break;
+            }
+        });
+
+        // Back Input
+        input.on("back", ()=>{
+
+        });
     }
 }

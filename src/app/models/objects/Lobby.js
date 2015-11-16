@@ -13,8 +13,9 @@ export default class extends BaseModel {
         super();
 
         this._currentOptions = [
-            "Host Game",
-            "Join Game"
+            "Select Job",
+            "Ready",
+            "Leave"
         ];
     }
 

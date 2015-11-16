@@ -14,24 +14,26 @@ export default class {
         this._events = {}
     }
 
-    on(type, listener) {
+    on(types, listener) {
         if(typeof listener != "function") {
           throw new TypeError()
         }
-        var listeners = this._events[type] ||(this._events[type] = [])
-        if(listeners.indexOf(listener) != -1) {
-          return this
-        }
-        listeners.push(listener)
-        if(listeners.length > this._maxListeners) {
-          error(
-            "possible memory leak, added %i %s listeners, "+
-            "use EventEmitter#setMaxListeners(number) if you " +
-            "want to increase the limit (%i now)",
-            listeners.length,
-            type,
-            this._maxListeners
-          )
+        for(let type of types.split(" ")) {
+            var listeners = this._events[type] ||(this._events[type] = [])
+            if(listeners.indexOf(listener) != -1) {
+              return this
+            }
+            listeners.push(listener)
+            if(listeners.length > this._maxListeners) {
+              error(
+                "possible memory leak, added %i %s listeners, "+
+                "use EventEmitter#setMaxListeners(number) if you " +
+                "want to increase the limit (%i now)",
+                listeners.length,
+                type,
+                this._maxListeners
+              )
+            }
         }
         return this
     }

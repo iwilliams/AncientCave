@@ -1,4 +1,5 @@
 import BaseModel     from '../BaseModel'; // Can't call this Object b/c of conflict xD
+import Logger from '../../services/Logger';
 
 let FILLABLE = new Set([
     "name",
@@ -11,14 +12,6 @@ let FILLABLE = new Set([
     "maxMana",
     "mana",
     "action",
-]);
-
-let STATES = new Set([
-    "idle",
-    "walking",
-    "waiting",
-    "action",
-    "busy"
 ]);
 
 class Player extends BaseModel {
@@ -84,7 +77,18 @@ class Player extends BaseModel {
             "walking",
             "attacking"
         ]);
-        this.curentState = "idle";
+        this.currentState = "idle";
+    }
+
+    set currentState(state) {
+        if(this._states.has(state)) {
+            Logger.debug("SET STATE TO STATE");
+            this._currentState = state;
+        }
+    }
+
+    get currentState() {
+        return this._currentState;
     }
 
     get name() {
