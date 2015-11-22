@@ -9,6 +9,13 @@ export default class extends EventEmitter {
 
     set currentState(state) {
         if(this._states.has(state)) {
+            Logger.debug("SET STATE TO STATE");
+            this._currentState = state;
+        }
+    }
+
+    set currentState(state) {
+        if(this._states.has(state)) {
             this._currentState = state;
         }
     }

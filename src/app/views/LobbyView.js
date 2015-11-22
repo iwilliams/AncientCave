@@ -10,6 +10,7 @@ export default class extends ObjectView {
         this._view = view;
         this._players = players;
         this._selectedOptionIndex = 0;
+        this._ready = false;
     }
 
     render(ctx, frame) {
@@ -72,7 +73,8 @@ export default class extends ObjectView {
         if(this.selectedOption == "Leave") {
             this._view.emit("leave-game");
         } else if(this.selectedOption == "Ready") {
-            this._view.emit("ready");
+            this._ready = !this._ready;
+            this._view.emit("ready", this._ready);
         }
     }
 

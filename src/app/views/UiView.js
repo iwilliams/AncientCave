@@ -1,38 +1,54 @@
 import Config from '../../Config';
 import ObjectView      from './ObjectView';
+import Logger          from '../services/Logger';
 
 export default class extends ObjectView {
-    constructor(ui) {
+    constructor(ui, players, view) {
         super();
-        this.ui = ui;
-        this._uiBg = ui.bg;
+        this._ui         = ui;
+        this._view       = view;
+        this._players    = players;
+
+        Logger.debug("UI PLAYERS");
+        Logger.log(this._players);
+
         this._tileHeight = 2;
+
+        this._images = [
+            {
+                "name": "bg",
+                "image": "ui-bg.png",
+            }
+        ];
+
+        this._selectedOptionIndex = 0;
     }
 
-    init() {
-        return new Promise((res, rej)=>{
-            this.image = document.createElement('img');
-            this.image.onload = function() {
-                res(this);
-            }
-            this.image.src = this._uiBg;
-        });
+    loadResources() {
+        let promises = []
+        for(let image of this._images) {
+            promises.push(this.loadResource(image.name, image.image));
+        }
+        return Promise.all(promises);
     }
 
     render(ctx) {
 
+        let yPos = Config.TILE_SIZE*(Config.TILE_Y-this._tileHeight);
+
+        // Draw Background
         ctx.save();
 
         let bgRect = [
             0,
-            Config.SPRITE_SIZE*Config.SPRITE_SCALE*(Config.TILE_Y-this._tileHeight),
+            yPos,
             Config.CANVAS_WIDTH,
             Config.SPRITE_SIZE*Config.SPRITE_SCALE*this._tileHeight - 300
         ];
 
         let uiRect = [
             0,
-            Config.SPRITE_SIZE*Config.SPRITE_SCALE*(Config.TILE_Y-this._tileHeight),
+            yPos,
             Config.CANVAS_WIDTH,
             Config.SPRITE_SIZE*Config.SPRITE_SCALE*this._tileHeight
         ];
@@ -59,28 +75,145 @@ export default class extends ObjectView {
 
         ctx.strokeRect(...strokeRect);
 
-        // Trying to get second border
-        //ctx.strokeStyle = "#FFFFFF";
-
-        //lineWidth = Config.SPRITE_SIZE*Config.SPRITE_SCALE/48;
-        //ctx.lineWidth = lineWidth;
-
-        //strokeRect = [...uiRect];
-        //strokeRect[0] += lineWidth/2;
-        //strokeRect[1] += lineWidth/2;
-        //strokeRect[2] -= lineWidth;
-        //strokeRect[3] -= lineWidth;
-
-        //ctx.strokeRect(...strokeRect);
-
         // Fill bg with patern
-
         ctx.globalAlpha = 0.1;
-        let patern = ctx.createPattern(this.image, "repeat");
+        let patern = ctx.createPattern(this._resources.get("bg"), "repeat");
         ctx.fillStyle = patern;
         ctx.rect(...strokeRect);
         ctx.fill();
 
-        ctx.restore()
+        ctx.restore();
+
+        ctx.fillStyle   = "#ffffff";
+        yPos += Config.TILE_SIZE/3;
+
+        let fontSize    = 5*Config.SPRITE_SCALE;
+        ctx.font        = fontSize + "px Courier New";
+
+        let xPos = Config.TILE_SIZE*1.2;
+
+        // Draw Info
+        ctx.fillText(...[
+            `${this._selectedOptionIndex == 0 ? ">" : ""}` + this._ui.currentOptions[0],
+            xPos,
+            yPos
+        ]);
+
+        ctx.fillText(...[
+            `${this._selectedOptionIndex == 1 ? ">" : ""}` + this._ui.currentOptions[1],
+            xPos + Config.TILE_SIZE*2,
+            yPos
+        ]);
+
+        ctx.fillText(...[
+            `${this._selectedOptionIndex == 2 ? ">" : ""}` + this._ui.currentOptions[2],
+            xPos,
+            yPos + fontSize*2
+        ]);
+
+        ctx.fillText(...[
+            `${this._selectedOptionIndex == 3 ? ">" : ""}` + this._ui.currentOptions[3],
+            xPos + Config.TILE_SIZE*2,
+            yPos + fontSize*2
+        ]);
+
+        xPos = Config.TILE_SIZE*5;
+        yPos = Config.TILE_SIZE*(Config.TILE_Y-this._tileHeight);
+
+        // Render Player Info
+        for(let player of this._players.values()) {
+            yPos += fontSize*2;
+
+            ctx.fillStyle   = "#ffffff";
+
+            // Render Player Names
+            ctx.fillText(...[
+                player.name,
+                xPos,
+                yPos
+            ]);
+
+            let healthBarXPos   = xPos + Config.TILE_SIZE*2;
+            let healthBarYPos   = yPos - fontSize/2;
+            let healthBarWidth  = Config.TILE_SIZE*2;
+            let healthBarHeight = fontSize/2;
+
+            //ctx.fillStyle = "#000";
+            //ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
+
+            // Render Player Health Fill
+            ctx.fillStyle = "#FF0000";
+            let healthPercentage = player.health/player.maxHealth;
+            ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth*healthPercentage, healthBarHeight);
+
+            // Render Player Health Stroke
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth   = 1*Config.SPRITE_SCALE;
+            ctx.strokeRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
+
+            ctx.fillStyle = "#FFF";
+            ctx.fillText(...[
+                `${player.health}/${player.maxHealth}`,
+                healthBarXPos+healthBarWidth+2*Config.SPRITE_SCALE,
+                healthBarYPos
+            ]);
+
+            healthBarYPos += healthBarHeight*1.5;
+
+            //ctx.fillStyle = "#000";
+            //ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
+
+            // Render Player Health Fill
+            ctx.fillStyle = "#0000FF";
+            let manaPercentage = player.mana/player.maxMana;
+            ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth*manaPercentage, healthBarHeight);
+
+            // Render Player Health Stroke
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth   = 1*Config.SPRITE_SCALE;
+            ctx.strokeRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
+
+            ctx.fillStyle = "#FFF";
+            ctx.fillText(...[
+                `${player.mana}/${player.maxMana}`,
+                healthBarXPos+healthBarWidth+2*Config.SPRITE_SCALE,
+                healthBarYPos
+            ]);
+        }
+    }
+
+    up() {
+        if(this._selectedOptionIndex == 0)
+            this._selectedOptionIndex = 2;
+        else if (this._selectedOptionIndex == 1)
+            this._selectedOptionIndex = 3;
+        else if (this._selectedOptionIndex == 2)
+            this._selectedOptionIndex = 0;
+        else if (this._selectedOptionIndex == 3)
+            this._selectedOptionIndex = 1;
+    }
+
+    down() {
+        this.up();
+    }
+
+    left() {
+        if(this._selectedOptionIndex == 0)
+            this._selectedOptionIndex = 1;
+        else if (this._selectedOptionIndex == 1)
+            this._selectedOptionIndex = 0;
+        else if (this._selectedOptionIndex == 2)
+            this._selectedOptionIndex = 3;
+        else if (this._selectedOptionIndex == 3)
+            this._selectedOptionIndex = 2;
+    }
+
+    right() {
+        this.left();
+    }
+
+    confirm() {
+        Logger.debug("Ui emit event option-select: " + this._ui.currentOptions[this._selectedOptionIndex]);
+        this._view.emit("option-select", this._ui.currentOptions[this._selectedOptionIndex]);
     }
 }

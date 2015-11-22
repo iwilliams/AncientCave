@@ -108,19 +108,37 @@ export default class extends EventEmitter {
         this._peer.destroy();
     }
 
-    playerState(state) {
+    /**
+     * Send message to all peers
+     */
+    _sendMessage(message) {
         if(this._peers) {
             for(let peer of this._peers.values()) {
-                let message = {
-                    "event": "player-state",
-                    "data": {
-                        "id": this._id,
-                        "state": state
-                    }
-                };
                 peer.connection.send(message);
             }
         }
+    }
+
+    playerState(state) {
+        let message = {
+            "event": "player-state",
+            "data": {
+                "id": this._id,
+                "state": state
+            }
+        };
+        this._sendMessage(message);
+    }
+
+    optionSelect(option) {
+        let message = {
+            "event": "option-select",
+            "data": {
+                "id": this._id,
+                "option": option
+            }
+        }
+        this._sendMessage(message);
     }
 
     handleData(message) {
@@ -149,6 +167,10 @@ export default class extends EventEmitter {
 
         if(message.event == "player-state") {
             this.emit("player-state", message.data);
+        }
+
+        if(message.event == "option-select") {
+            this.emit("option-select", message.data);
         }
     }
 }

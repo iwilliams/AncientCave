@@ -78,6 +78,14 @@ class Player extends BaseModel {
             "attacking"
         ]);
         this.currentState = "idle";
+
+        this.currentAction = "thinking";
+
+        this.maxHealth = 100;
+        this.health = 100;
+
+        this.maxMana = 100;
+        this.mana = 100;
     }
 
     set currentState(state) {
@@ -87,17 +95,15 @@ class Player extends BaseModel {
         }
     }
 
-    get currentState() {
-        return this._currentState;
-    }
+    set currentAction(action) {this._currentAction = action;}
 
-    get name() {
-        return this._name;
-    }
+    get currentState() {return this._currentState;}
 
-    get id() {
-        return this._id;
-    }
+    get currentAction() {return this._currentAction;}
+
+    get name() {return this._name;}
+
+    get id() {return this._id;}
 
     init() {
         return new Promise((res, rej)=>{

@@ -11,6 +11,7 @@ import EnemyView    from './EnemyView';
 import RoomView     from './RoomView';
 import MainMenuView from './MainMenuView';
 import LobbyView    from './LobbyView';
+import UiView       from './UiView';
 
 export default class extends EventEmitter {
     constructor() {
@@ -143,45 +144,52 @@ export default class extends EventEmitter {
                     this._lobbyView = lobbyView;
                     this._views = new Set([this._lobbyView]);
                 });
+            } else if(message == "playing") {
+                // Create a new room view
+                let roomView = new RoomView(game.room);
+                this._roomView = roomView;
+
+                let promises = [
+                    roomView.loadResources()
+                ];
+
+                let views = [];
+
+                // Create all of our player views
+                this._playerViews = new Map();
+                for(let player of game.players.values()) {
+                    let playerView = new PlayerView(player);
+                    promises.push(playerView.loadResources());
+                    views.push(playerView);
+                    this._playerViews.set(player.id, playerView);
+                }
+
+                let uiView = new UiView(game.ui, game.players, this);
+                this._uiView = uiView;
+
+                promises.push(uiView.loadResources());
+
+                // After all renderers are ready let the dispatcher know
+                Promise.all(promises).then(()=>{
+                    this._views = [
+                        this._roomView,
+                        ...views,
+                        this._uiView
+                    ];
+                    this.emit("render-ready");
+                });
             }
         });
 
         game.on("add-player", (player)=>{
-            // Create a new player view
-            let playerView = new PlayerView(player);
-
-            // Inititalize player view
-            playerView.init().then(()=>{
-                // Decide what to do after initialized
-                if(this._playerViews)
-                    this._playerViews.add(playerView);
-                else
-                    this._playerViews = new Set([playerView]);
-            });
+                if(game.currentState === "loby")
+                    this._lobbyView._ready = false;
         });
 
         game.on("add-enemy", (enemy)=>{
-            // Create a new enemy view
-            let enemyView = new EnemyView(enemy);
-
-            // Inititalize enemy view
-            enemyView.init().then(()=>{
-                // Decide what to do after initialized
-                if(this._enemyViews)
-                    this._enemyViews.add(enemyView);
-                else
-                    this._enemyViews = new Set([enemyView]);
-            });
         });
 
         game.on("set-room", (room)=>{
-            // Create a new room view
-            let roomView = new RoomView(room);
-
-            // Initialize room view
-            roomView.init().then(()=> {
-                this._roomView = new RoomView(room);
-            });
         });
     }
 
@@ -196,6 +204,9 @@ export default class extends EventEmitter {
                 case "main menu":
                     this._mainMenuView.up();
                     break;
+                case "playing":
+                    this._uiView.up();
+                    break;
             }
         });
 
@@ -205,6 +216,9 @@ export default class extends EventEmitter {
             switch(gameState) {
                 case "main menu":
                     this._mainMenuView.down();
+                    break;
+                case "playing":
+                    this._uiView.down();
                     break;
             }
         });
@@ -216,6 +230,9 @@ export default class extends EventEmitter {
                 case "lobby":
                     this._lobbyView.left();
                     break;
+                case "playing":
+                    this._uiView.left();
+                    break;
             }
         });
 
@@ -225,6 +242,9 @@ export default class extends EventEmitter {
             switch(gameState) {
                 case "lobby":
                     this._lobbyView.right();
+                    break;
+                case "playing":
+                    this._uiView.right();
                     break;
             }
         });
@@ -238,6 +258,9 @@ export default class extends EventEmitter {
                     break;
                 case "lobby":
                     this._lobbyView.confirm();
+                    break;
+                case "playing":
+                    this._uiView.confirm();
                     break;
             }
         });

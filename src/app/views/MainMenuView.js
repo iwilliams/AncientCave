@@ -87,6 +87,10 @@ export default class extends ObjectView {
             this._dialog = false;
         });
 
+        hostButton.addEventListener("click", ()=>{
+            this._dialog.confirm();
+        });
+
         this._dialog = {
             element: element,
             remove: function() {
@@ -132,6 +136,10 @@ export default class extends ObjectView {
         cancelButton.addEventListener("click", ()=>{
             this._dialog.remove();
             this._dialog = false;
+        });
+
+        joinButton.addEventListener("click", ()=>{
+            this._dialog.confirm();
         });
 
         this._dialog = {

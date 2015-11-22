@@ -24,5 +24,19 @@ export default class extends BaseModel {
             "item",
             "manage"
         ];
+
+        this._currentOptions = this._roomOptions;
+    }
+
+    get currentOptions() {
+        return this._currentOptions;
+    }
+
+    setBattleOptions() {
+        this._currentOptions = this._battleOptions;
+    }
+
+    setIdleOption() {
+        this._currentOptions = this._roomOptions;
     }
 }

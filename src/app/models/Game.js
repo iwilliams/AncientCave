@@ -14,6 +14,7 @@ import Monster   from './objects/Monster';
 import Room      from './objects/Room';
 import MainMenu  from './objects/MainMenu';
 import Lobby     from './objects/Lobby';
+import Ui        from './objects/Ui';
 
 export default class extends BaseModel {
 
@@ -67,33 +68,124 @@ export default class extends BaseModel {
         }
     }
 
-    get currentState() {
-        return this._currentState;
+    /**
+     * Call this function after any playerstae change so we can decide what to do.
+     */
+    checkPlayerState() {
+        // If we are in the loby decide if we need to start the game
+        if(this.currentState === "lobby") {
+            let readyToStart = true;
+            for(let player of this.players.values()) {
+                readyToStart = readyToStart && player.currentState === "ready";
+            }
+            Logger.debug("Players are ready? " + readyToStart);
+
+            if(readyToStart) {
+                Logger.banner("STARTING GAME");
+                this._startPlaying();
+            }
+        }
     }
 
-    get mainMenu() {
-        return this._mainMenu;
+    checkPlayerAction() {
+        if(this.currentState === "playing") {
+
+            if(this._room.currentState == "idle") {
+                let readyToMove = true;
+                for(let player of this.players.values()) {
+                    readyToMove = readyToMove && player.currentAction === "ready";
+                }
+
+                if(readyToMove) {
+                    this._lookForTrouble();
+                }
+            }
+        }
     }
 
-    get players() {
-        return this._players;
-    }
 
-    get lobby() {
-        return this._lobby;
-    }
+    /**
+     * Return current state
+     */
+    get currentState() {return this._currentState;}
 
-    startGame() {
+    /**
+     * Return main menu
+     */
+    get mainMenu() {return this._mainMenu;}
+
+    /**
+     * Return lobby
+     */
+    get lobby() {return this._lobby;}
+
+    /**
+     * Return players
+     */
+    get players() {return this._players;}
+
+    /**
+     * Return Current Room
+     */
+    get room() {return this._room;}
+
+    /**
+     * Return Ui Room
+     */
+    get ui() {return this._ui;}
+
+    _startMenu() {
         this.currentState = "main menu";
     }
 
-    startMultiplayer() {
+    _startMultiplayer() {
         this.currentState = "lobby";
     }
 
+    _startPlaying() {
+        // Create a room
+        this._room        = new Room();
+        this._ui          = new Ui();
+        this.currentState = "playing";
+    }
+
+    _lookForTrouble() {
+        // Set room to moving
+        this._room.currentState = "moving";
+
+        // Set players to walking
+        for(let player of this.players.values()) {
+            player.currentState = "walking";
+        }
+
+        // Create enemies
+        let enemy = new Enemy();
+        this.emit("add-enemy", enemy);
+
+        this._enemies = new Set[
+            enemy
+        ];
+
+        setTimeout(()=>{
+            this._startBattle();
+        }, 2000);
+    }
+
+    _startBattle() {
+        this._room.currentState = "battle";
+        this._ui.setBattleOptions();
+        for(let player of this.players.values()) {
+            player.currentState  = "idle";
+            player.currentAction = "action";
+        }
+    }
+
+    /**
+     * Listen to events from the dispatcher and respond acordingly
+     */
     listenToDispatcher(dispatcher) {
-        dispatcher.on("start-game", this.startGame.bind(this));
-        dispatcher.on("start-mp",   this.startMultiplayer.bind(this));
+        dispatcher.on("start-game", this._startMenu.bind(this));
+        dispatcher.on("start-mp",   this._startMultiplayer.bind(this));
 
         // Listen to game state events
         dispatcher.on("game-state", (message)=>{
@@ -109,7 +201,6 @@ export default class extends BaseModel {
 
             p.init().then(()=>{
                 this.addRemotePlayer(p);
-                this.emit("add-player", p);
             });
         });
 
@@ -121,7 +212,6 @@ export default class extends BaseModel {
 
             p.init().then(()=>{
                 this.addLocalPlayer(p);
-                this.emit("add-player", p);
             });
         });
 
@@ -147,6 +237,9 @@ export default class extends BaseModel {
             for(let player of this._localPlayers.values()) {
                 player.currentState = message.state;
             }
+
+            // Progress Game logic accoridng to player state
+            this.checkPlayerState();
         });
 
         // Sync Remote Player state
@@ -156,29 +249,62 @@ export default class extends BaseModel {
 
             let player = this._remotePlayers.get(message.id);
             player.currentState = message.state;
+
+            // Progress Game logic accoridng to player state
+            this.checkPlayerState();
+        });
+
+        // Listen for local option select
+        // CHANGE TO PLAYER-ACTION
+        dispatcher.on("local-option-select", (message)=>{
+            Logger.debug("Game: local-option-select");
+            Logger.log(message);
+            for(let player of this._localPlayers.values()) {
+                player.currentAction = message;
+            }
+            this.checkPlayerAction();
+        });
+
+        // Listen for remote option select
+        // CHANGE TO PLAYER-ACTION
+        dispatcher.on("remote-option-select", (message)=>{
+            let player = this._remotePlayers.get(message.id);
+            player.currentAction = message.option;
+            this.checkPlayerAction();
         });
     }
 
+    /**
+     * Add a Local Player
+     */
     addLocalPlayer(p) {
         this._localPlayers.set(p.id, p);
         this.addPlayer(p);
     }
 
+    /**
+     * Add a Remote Player
+     */
     addRemotePlayer(p) {
         this._remotePlayers.set(p.id, p);
         this.addPlayer(p);
     }
 
+    /**
+     * Adds a player regardless of remote or local
+     */
     addPlayer(p) {
         Logger.debug("Game: Adding Player");
         Logger.log(p);
         let players = this._players.values();
-        let yPos = 0;
+        let yPos = .8;
         for(let player of players) {
             yPos = player.yPos;
+            player.currentState = "idle";
         }
-        yPos++;
+        yPos += 1.2;
         p.yPos = yPos;
         this._players.set(p.id, p);
+        this.emit("add-player", p);
     }
 }

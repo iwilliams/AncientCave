@@ -2,23 +2,45 @@ import ObjectView      from './ObjectView';
 import Utils from '../services/Utils';
 import Config from '../../Config';
 
+// Static Room Types
+//static get TYPE_CAVE() {
+    //return {
+        //floor: 'goodtile.png',
+        //wall: 'shitwall.png'
+    //};
+//}
+
+//static get TYPE_TEMPLE() {
+    //return {
+        //floor: 'grass.png',
+        //wall: 'pillars.png'
+    //};
+//}
+
 export default class extends ObjectView {
-    constructor(object) {
+    constructor(room) {
         super();
-        this._room = object;
+        this._room = room;
         this._floorOffset = 0;
         this._wallOffset  = 0;
 
         this._images = [
             {
                 "name": "floor",
-                "image": this._room.type.floor,
+                "image": "goodtile.png",
             },
             {
                 "name": "wall",
-                "image": this._room.type.wall,
+                "image": "shitwall.png",
             }
         ];
+    }
+
+    loadResources() {
+        return Promise.all([
+            this.loadResource("floor", "goodtile.png"),
+            this.loadResource("wall",  "shitwall.png")
+        ]);
     }
 
     render(ctx, frame) {
@@ -63,7 +85,7 @@ export default class extends ObjectView {
 
         // Calculate Offsets
         let xStep = Config.SPRITE_SIZE*Config.SPRITE_SCALE/16;
-        if(this.room.isMoving) {
+        if(this._room.currentState == "moving") {
             this._floorOffset += xStep;
             if(this._floorOffset >= floorWidth - 1) this._floorOffset = 0;
 

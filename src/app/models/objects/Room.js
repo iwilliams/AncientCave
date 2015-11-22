@@ -14,27 +14,17 @@ let FILLABLE = new Set([
 
 class Room extends BaseModel {
 
-    // Static Room Types
-    static get TYPE_CAVE() {
-        return {
-            floor: 'goodtile.png',
-            wall: 'shitwall.png'
-        };
-    }
-
-    static get TYPE_TEMPLE() {
-        return {
-            floor: 'grass.png',
-            wall: 'pillars.png'
-        };
-    }
 
     constructor(type) {
         super();
-        this._states = [
+        this._states = new Set([
             "idle",
-            "moving"
-        ];
+            "moving",
+            "battle"
+        ]);
+
+        this._type = type;
+        this.currentState = "idle";
     }
 
     lookForTrouble() {

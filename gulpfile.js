@@ -4,6 +4,7 @@ var gulp       = require('gulp'),
     source     = require('vinyl-source-stream'),
     babelify   = require("babelify"),
     concat     = require('gulp-concat'),
+    buffer     = require('vinyl-buffer'),
     uglify     = require('gulp-uglify');
 
 var defaultTasks = [];
@@ -18,12 +19,15 @@ var includes = {
 }
 
 // Compile es6 code
+// http://stackoverflow.com/questions/24992980/how-to-uglify-output-with-browserify-in-gulp
 gulp.task('es6', function() {
     browserify("./src/AncientCave.js", { debug: true })
       .transform(babelify)
       .bundle()
       .on("error", function (err) { console.log("Error : " + err.message); })
       .pipe(source('AncientCave.js'))
+      //.pipe(buffer())
+      //.pipe(uglify())
       .pipe(gulp.dest('./dist'));
 });
 defaultTasks.push('es6');

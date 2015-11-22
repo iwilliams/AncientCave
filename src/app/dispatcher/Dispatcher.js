@@ -12,20 +12,6 @@ export default class extends EventEmitter {
         this.registerViewMessages(this._view);
     }
 
-    registerViewMessages(view) {
-        view.on("start-mp", this.initMultiplayerGame.bind(this));
-        view.on("leave-game", ()=>{
-            this.leaveGame()
-        });
-
-        view.on("ready", ()=>{
-            this._multiplayerController.playerState("ready");
-            this.emit("local-player-state", {
-                "state": "ready"
-            });
-        });
-    }
-
     initMultiplayerGame(message) {
         let args = [];
         // Build args
@@ -79,12 +65,42 @@ export default class extends EventEmitter {
         });
     }
 
+    /**
+     * Register all multiplayer Events
+     */
     registerMultiplayerEvents(multiplayerService) {
         multiplayerService.on("peer-connect",    this.peerConnect.bind(this));
         multiplayerService.on("peer-disconnect", this.peerDisconnect.bind(this));
 
         multiplayerService.on("player-state", (message)=>{
             this.emit("remote-player-state", message);
+        });
+
+        multiplayerService.on("option-select", (message)=>{
+            this.emit("remote-option-select", message);
+        });
+    }
+
+    /**
+     * Register all view messages
+     */
+    registerViewMessages(view) {
+        view.on("start-mp", this.initMultiplayerGame.bind(this));
+        view.on("leave-game", ()=>{
+            this.leaveGame()
+        });
+
+        view.on("ready", (ready)=>{
+            let state = ready ? "ready" : "idle";
+            this._multiplayerController.playerState(state);
+            this.emit("local-player-state", {
+                "state": state
+            });
+        });
+
+        view.on("option-select", (option)=>{
+            this._multiplayerController.optionSelect(option);
+            this.emit("local-option-select", option);
         });
     }
 }
