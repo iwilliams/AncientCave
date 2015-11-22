@@ -182,11 +182,37 @@ export default class extends EventEmitter {
         });
 
         game.on("add-player", (player)=>{
-                if(game.currentState === "loby")
-                    this._lobbyView._ready = false;
+            if(game.currentState === "loby")
+                this._lobbyView._ready = false;
         });
 
         game.on("add-enemy", (enemy)=>{
+            let enemyView = new EnemyView(enemy);
+            enemyView.loadResources().then(()=>{
+                if(this._enemyViews) {
+                    this._enemyViews = [
+                        enemyView,
+                        ...this._enemyViews
+                    ];
+                } else {
+                    this._enemyViews = [enemyView];
+                }
+            });
+        });
+
+        game.on("start-battle", ()=>{
+            this._views = [
+                ...this._views,
+                ...this._enemyViews
+            ];
+        });
+
+        game.on("end-battle", ()=>{
+            this._views = [
+                this._roomView,
+                ...this._playerViews.values(),
+                this._uiView
+            ];
         });
 
         game.on("set-room", (room)=>{

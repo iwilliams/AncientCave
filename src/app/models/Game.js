@@ -10,7 +10,7 @@ import Rng       from '../services/Rng';
 // Import Models
 import BaseModel from './BaseModel';
 import Player    from './objects/Player';
-import Monster   from './objects/Monster';
+import Enemy     from './objects/Monster';
 import Room      from './objects/Room';
 import MainMenu  from './objects/MainMenu';
 import Lobby     from './objects/Lobby';
@@ -89,7 +89,6 @@ export default class extends BaseModel {
 
     checkPlayerAction() {
         if(this.currentState === "playing") {
-
             if(this._room.currentState == "idle") {
                 let readyToMove = true;
                 for(let player of this.players.values()) {
@@ -98,6 +97,15 @@ export default class extends BaseModel {
 
                 if(readyToMove) {
                     this._lookForTrouble();
+                }
+            } else if (this._room.currentState == "battle") {
+                let readyToAttack = true;
+                for(let player of this.players.values()) {
+                    readyToAttack = readyToAttack && player.currentAction === "attack";
+                }
+
+                if(readyToAttack) {
+                    this._combatPhase();
                 }
             }
         }
@@ -162,9 +170,9 @@ export default class extends BaseModel {
         let enemy = new Enemy();
         this.emit("add-enemy", enemy);
 
-        this._enemies = new Set[
+        this._enemies = new Set([
             enemy
-        ];
+        ]);
 
         setTimeout(()=>{
             this._startBattle();
@@ -177,6 +185,28 @@ export default class extends BaseModel {
         for(let player of this.players.values()) {
             player.currentState  = "idle";
             player.currentAction = "action";
+        }
+        this.emit('start-battle');
+    }
+
+    _combatPhase() {
+        let shouldEndBattle = true;
+        for(let enemy of this._enemies.values()) {
+            enemy.health--;
+            shouldEndBattle = shouldEndBattle && (enemy.health <= 0);
+        }
+
+        Logger.debug("Combat Phase: " + shouldEndBattle);
+
+        if(shouldEndBattle) {
+            this._room.currentState = "idle";
+            this._ui.setIdleOptions();
+            this.emit('end-battle');
+        }
+
+        for(let player of this.players.values()) {
+            player.currentState  = "idle";
+            player.currentAction = "thinking";
         }
     }
 

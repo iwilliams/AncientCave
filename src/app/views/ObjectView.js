@@ -25,6 +25,14 @@ export default class {
         });
     }
 
+    loadResources() {
+        let promises = []
+        for(let image of this._images) {
+            promises.push(this.loadResource(image.name, image.image));
+        }
+        return Promise.all(promises);
+    }
+
     /**
      * Initialize all resources associated with this object
      */

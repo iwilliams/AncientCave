@@ -36,7 +36,7 @@ export default class extends BaseModel {
         this._currentOptions = this._battleOptions;
     }
 
-    setIdleOption() {
+    setIdleOptions() {
         this._currentOptions = this._roomOptions;
     }
 }

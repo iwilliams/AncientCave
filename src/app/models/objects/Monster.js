@@ -15,5 +15,7 @@ export default class extends BaseModel {
         this.xPos = xPos;
         this.ypos = yPos;
         this.type = type;
+
+        this.health = 5;
     }
 }

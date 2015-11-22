@@ -3,14 +3,14 @@ import Utils from '../services/Utils';
 import Config from '../../Config';
 
 export default class extends ObjectView {
-    constructor(monster) {
+    constructor(enemy) {
         super()
-        this._monster = monster;
+        this._enemy = enemy;
 
         this._images = [
             {
                 "name": "sprite",
-                "image": this._monster.type.sprite,
+                "image": 'wurm-sheet.png',
             }
         ];
     }
