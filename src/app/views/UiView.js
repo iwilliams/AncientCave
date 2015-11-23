@@ -133,13 +133,26 @@ export default class extends ObjectView {
                 yPos
             ]);
 
+            // Define cooldown vars
+            let cooldownBarYPos   = yPos + fontSize/2;
+            let cooldownBarWidth  = Config.TILE_SIZE;
+            let cooldownBarHeight = fontSize/2;
+
+            // Render Player Cooldown Fill
+            ctx.fillStyle = "#00FF00";
+            let cooldownPercentage = player.cooldown/player.maxCooldown;
+            ctx.fillRect(xPos, cooldownBarYPos, cooldownBarWidth*cooldownPercentage, cooldownBarHeight);
+
+            // Render Player Cooldown Stroke
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth   = 1*Config.SPRITE_SCALE;
+            ctx.strokeRect(xPos, cooldownBarYPos, cooldownBarWidth, cooldownBarHeight);
+
+            // Define Healthbar vars
             let healthBarXPos   = xPos + Config.TILE_SIZE*2;
             let healthBarYPos   = yPos - fontSize/2;
             let healthBarWidth  = Config.TILE_SIZE*2;
             let healthBarHeight = fontSize/2;
-
-            //ctx.fillStyle = "#000";
-            //ctx.fillRect(healthBarXPos, healthBarYPos, healthBarWidth, healthBarHeight);
 
             // Render Player Health Fill
             ctx.fillStyle = "#FF0000";
