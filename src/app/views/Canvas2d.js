@@ -4,6 +4,7 @@ import EventEmitter from '../mixins/EventEmitter';
 import InputService from '../services/KeyboardInputService';
 import Config from '../../Config';
 import Logger from '../services/Logger';
+import SoundService from '../services/SoundService';
 
 // Import views
 import PlayerView   from './PlayerView';
@@ -166,8 +167,12 @@ export default class extends EventEmitter {
 
                 let uiView = new UiView(game.ui, game.players, this);
                 this._uiView = uiView;
-
                 promises.push(uiView.loadResources());
+
+                // Load sounds
+                let soundService = new SoundService();
+                this._soundService = soundService;
+                promises.push(soundService.loadResources());
 
                 // After all renderers are ready let the dispatcher know
                 Promise.all(promises).then(()=>{
@@ -207,6 +212,12 @@ export default class extends EventEmitter {
             ];
         });
 
+        game.on("player-cooldown", (player)=>{
+            if(player.isLocal) {
+                this._soundService.play("cooldown-ready");
+            }
+        });
+
         game.on("end-battle", ()=>{
             this._views = [
                 this._roomView,
@@ -232,6 +243,7 @@ export default class extends EventEmitter {
                     break;
                 case "playing":
                     this._uiView.up();
+                    this._soundService.play("menu-move");
                     break;
             }
         });
@@ -245,6 +257,7 @@ export default class extends EventEmitter {
                     break;
                 case "playing":
                     this._uiView.down();
+                    this._soundService.play("menu-move");
                     break;
             }
         });
@@ -258,6 +271,7 @@ export default class extends EventEmitter {
                     break;
                 case "playing":
                     this._uiView.left();
+                    this._soundService.play("menu-move");
                     break;
             }
         });
@@ -271,6 +285,7 @@ export default class extends EventEmitter {
                     break;
                 case "playing":
                     this._uiView.right();
+                    this._soundService.play("menu-move");
                     break;
             }
         });
@@ -287,6 +302,7 @@ export default class extends EventEmitter {
                     break;
                 case "playing":
                     this._uiView.confirm();
+                    this._soundService.play("menu-select");
                     break;
             }
         });

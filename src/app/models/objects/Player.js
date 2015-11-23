@@ -1,19 +1,6 @@
 import BaseModel     from '../BaseModel'; // Can't call this Object b/c of conflict xD
 import Logger from '../../services/Logger';
 
-let FILLABLE = new Set([
-    "name",
-    "ready",
-    "isWalking",
-    "job",
-    "position",
-    "maxHealth",
-    "health",
-    "maxMana",
-    "mana",
-    "action",
-]);
-
 class Player extends BaseModel {
     // Static Room Types
     static get JOB_CLAIRVOYANT() {
@@ -67,7 +54,7 @@ class Player extends BaseModel {
     }
 
     constructor(name, id) {
-        super(FILLABLE);
+        super();
         this._name = name;
         this._id = id;
 
@@ -86,6 +73,9 @@ class Player extends BaseModel {
 
         this.maxMana = 100;
         this.mana = 100;
+
+        this.maxCooldown = 100;
+        this.cooldown = 100;
     }
 
     set currentState(state) {
@@ -108,6 +98,24 @@ class Player extends BaseModel {
     init() {
         return new Promise((res, rej)=>{
             res();
+        });
+    }
+
+    beginCombat() {
+        this.currentState  = "idle";
+        this.currentAction = "action";
+        this.cooldown      = 0;
+    }
+
+    chargeCooldown() {
+        return new Promise((res, rej)=>{
+            this._cooldownInterval = setInterval(()=>{
+                this.cooldown++;
+                if(this.cooldown == this.maxCooldown) {
+                    clearInterval(this._cooldownInterval);
+                    res();
+                }
+            }, 15);
         });
     }
 }

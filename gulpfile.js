@@ -15,7 +15,8 @@ var bowerDir = function(dir) {
 var includes = {
     keypress: bowerDir('Keypress/'),
     peerjs:   bowerDir('peerjs/'),
-    rngjs:   bowerDir('rng-js/')
+    rngjs:   bowerDir('rng-js/'),
+    howlerjs: bowerDir('howler.js/')
 }
 
 // Compile es6 code
@@ -35,9 +36,10 @@ defaultTasks.push('es6');
 // Vendor Scripts
 gulp.task('vendor-scripts', function() {
     return gulp.src([
-        includes.keypress + 'keypress-2.1.3.min.js',
-        includes.peerjs   + 'peer.min.js',
-        includes.rngjs   + 'rng.js'
+        includes.keypress   + 'keypress-2.1.3.min.js',
+        includes.peerjs     + 'peer.min.js',
+        includes.rngjs      + 'rng.js',
+        includes.howlerjs   + 'howler.js'
     ])
     .pipe(concat('vendor.js'))
     .pipe(uglify())

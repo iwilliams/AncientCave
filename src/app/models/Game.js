@@ -183,11 +183,16 @@ export default class extends BaseModel {
         this._room.currentState = "battle";
         this._ui.setBattleOptions();
         for(let player of this.players.values()) {
-            player.currentState  = "idle";
-            player.currentAction = "action";
+            player.beginCombat();
+            player.chargeCooldown().then(()=>{
+                this.emit('player-cooldown', player);
+            });
         }
         this.emit('start-battle');
     }
+
+    //_playerAttack(player) {
+    //}
 
     _combatPhase() {
         let shouldEndBattle = true;
@@ -308,6 +313,7 @@ export default class extends BaseModel {
      * Add a Local Player
      */
     addLocalPlayer(p) {
+        p.isLocal = true;
         this._localPlayers.set(p.id, p);
         this.addPlayer(p);
     }
@@ -316,6 +322,7 @@ export default class extends BaseModel {
      * Add a Remote Player
      */
     addRemotePlayer(p) {
+        p.isLocal = false;
         this._remotePlayers.set(p.id, p);
         this.addPlayer(p);
     }
