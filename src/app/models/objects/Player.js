@@ -1,56 +1,52 @@
 import BaseModel     from '../BaseModel'; // Can't call this Object b/c of conflict xD
 import Logger from '../../services/Logger';
 
+let JOBS = new Map();
+
+JOBS.set("clairvoyant", {
+    'name':   'clairvoyant',
+    'health': 60,
+    'mana': 40,
+    'cooldown': 80,
+    'position': 'back'
+});
+
+JOBS.set("herbalist", {
+    'name': 'herbalist',
+    'health': 40,
+    'mana': 0,
+    'cooldown': 80,
+    'position': 'back'
+});
+
+JOBS.set("villain", {
+    'name': 'villain',
+    'health': 80,
+    'mana': 20,
+    'cooldown': 40,
+    'position': 'front'
+});
+
+JOBS.set("knight", {
+    'name': 'knight',
+    'health': 100,
+    'mana': 0,
+    'cooldown': 100,
+    'position': 'front'
+});
+
+JOBS.set("necromancer", {
+    'name': 'necromancer',
+    'health': 40,
+    'mana': 120,
+    'cooldown': 80,
+    'position': 'front'
+});
+
 class Player extends BaseModel {
-    // Static Room Types
-    static get JOB_CLAIRVOYANT() {
-        return {
-            'sprite': 'clairvoyant-sheet.png',
-            'name':   'clairvoyant',
-            'health': 60,
-            'mana': 40,
-            'position': 'back'
-        }
-    }
 
-    static get JOB_HERBALIST() {
-        return {
-            'sprite': 'herbalist-sheet.png',
-            'name': 'herbalist',
-            'health': 40,
-            'mana': 0,
-            'position': 'back'
-        }
-    }
-
-    static get JOB_VILLAIN() {
-        return {
-            'sprite': 'villain2-sheet.png',
-            'name': 'villain',
-            'health': 80,
-            'mana': 20,
-            'position': 'front'
-        }
-    }
-
-    static get JOB_KNIGHT() {
-        return {
-            'sprite': 'knight-sheet.png',
-            'name': 'knight',
-            'health': 100,
-            'mana': 0,
-            'position': 'front'
-        }
-    }
-
-    static get JOB_NECROMANCER() {
-        return {
-            'sprite': 'necromancer-sheet.png',
-            'name': 'necromancer',
-            'health': 40,
-            'mana': 120,
-            'position': 'front'
-        }
+    static getJobs() {
+        return [...JOBS.values()];
     }
 
     constructor(name, id) {
@@ -67,15 +63,23 @@ class Player extends BaseModel {
         this.currentState = "idle";
 
         this.currentAction = "thinking";
+    }
 
-        this.maxHealth = 100;
-        this.health = 100;
+    set job(jobName) {
+        this._job = JOBS.get(jobName);
 
-        this.maxMana = 100;
-        this.mana = 100;
+        this.maxHealth = this._job.health;
+        this.health = this._job.health;
 
-        this.maxCooldown = 100;
-        this.cooldown = 100;
+        this.maxMana = this._job.mana;
+        this.mana = this._job.mana;
+
+        this.maxCooldown = this._job.cooldown;
+        this.cooldown = this._job.cooldown;
+    }
+
+    get job() {
+        return this._job;
     }
 
     set currentState(state) {
@@ -113,17 +117,21 @@ class Player extends BaseModel {
                 this.cooldown++;
                 if(this.cooldown == this.maxCooldown) {
                     clearInterval(this._cooldownInterval);
-                    if(this._attack)
+                    if(this._attack) {
                         this._attack();
+                        this.waitingToAttack = false;
+                    }
                     res();
                 }
-            }, 15);
+            }, 30);
         });
     }
 
     attack() {
+        this.waitingToAttack = true;
         return new Promise((res, rej)=>{
             if(this.cooldown == this.maxCooldown) {
+                this.waitingToAttack = false;
                 res();
             } else {
                 this._attack = res;

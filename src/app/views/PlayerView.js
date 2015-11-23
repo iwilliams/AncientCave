@@ -3,6 +3,14 @@ import Utils           from '../services/Utils';
 import Config          from '../../Config';
 import ResrouceService from '../services/ResourceService';
 
+let JOB_SPRITES = {
+    "clairvoyant": "clairvoyant-sheet.png",
+    "herbalist": "herbalist-sheet.png",
+    "villain": "villain2-sheet.png",
+    "knight": "knight-sheet.png",
+    "necromancer": "necromancer-sheet.png",
+};
+
 export default class extends ObjectView {
     constructor(player) {
         super(player);
@@ -13,7 +21,7 @@ export default class extends ObjectView {
         this._images = [
             {
                 "name": "sprite",
-                "image": "necromancer-sheet.png",
+                "image": JOB_SPRITES[player.job.name],
             },
             {
                 "name": "shadow",

@@ -100,14 +100,16 @@ export default class extends BaseModel {
                 }
             } else if (this._room.currentState == "battle") {
                 if(message === "attack") {
-                    p.attack().then(()=>{
-                        this.emit("player-attack", p);
-                        this._combatPhase();
-                        p.cooldown = 0;
-                        return p.chargeCooldown();
-                    }).then(()=>{
-                        this.emit('player-cooldown', p);
-                    });
+                    if(!p.waitingToAttack) {
+                        p.attack().then(()=>{
+                            this.emit("player-attack", p);
+                            this._combatPhase();
+                            p.cooldown = 0;
+                            return p.chargeCooldown();
+                        }).then(()=>{
+                            this.emit('player-cooldown', p);
+                        });
+                    }
                 }
             }
         }
@@ -264,6 +266,19 @@ export default class extends BaseModel {
             for(let player of this._players.values()) {
                 player.currentState = "idle";
             }
+        });
+
+        // Local job select
+        dispatcher.on("local-player-job-select", (message)=>{
+            for(let player of this._localPlayers.values()) {
+                player.job = message;
+            }
+        });
+
+        // Remote job select
+        dispatcher.on("remote-player-job-select", (message)=>{
+            let player = this._remotePlayers.get(message.id);
+            player.job = message.job;
         });
 
         // Sync Local Player state

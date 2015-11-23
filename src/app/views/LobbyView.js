@@ -2,6 +2,18 @@ import ObjectView      from './ObjectView';
 import Utils           from '../services/Utils';
 import Config          from '../../Config';
 import ResrouceService from '../services/ResourceService';
+import Player          from '../models/objects/Player';
+
+let jobDialog = `
+    <div class="dialog">
+        <h3>Select Job</h3>
+        <label>Job: </label>
+        <select name="job">
+        </select><br>
+        <button name="confirm">Confirm</button>
+        <button name="cancel">Cancel</button>
+    </div>
+`;
 
 export default class extends ObjectView {
     constructor(lobby, players, view) {
@@ -11,6 +23,49 @@ export default class extends ObjectView {
         this._players = players;
         this._selectedOptionIndex = 0;
         this._ready = false;
+        this._dialogOpen = false;
+    }
+
+    openJobDialog(view) {
+        let parser = new DOMParser()
+        let doc = parser.parseFromString(jobDialog, "text/html");
+        let element = doc.firstChild;
+
+        let confirmButton   = element.querySelector('button[name="confirm"]');
+        let cancelButton = element.querySelector('button[name="cancel"]');
+
+        let jobSelect = element.querySelector('select[name="job"]');
+
+        for(let job of Player.getJobs()) {
+            let jobOption = document.createElement('option')
+            jobOption.value = job.name;
+            jobOption.innerHTML = job.name;
+            jobSelect.appendChild(jobOption);
+        }
+
+        view._element.appendChild(element);
+
+        cancelButton.addEventListener("click", ()=>{
+            this._dialog.remove();
+            this._dialog = false;
+        });
+
+        confirmButton.addEventListener("click", ()=>{
+            this._dialog.confirm();
+        });
+
+        this._dialog = {
+            element: element,
+            remove: function() {
+                this.element.remove()
+            },
+            confirm: function() {
+                if(jobSelect.value) {
+                    view.emit("job-select", jobSelect.value);
+                    this.remove();
+                }
+            }
+        };
     }
 
     render(ctx, frame) {
@@ -28,6 +83,12 @@ export default class extends ObjectView {
             ctx.fillStyle     = "#ffffff";
             yPos += 40;
             ctx.fillText(player.name, 100, yPos);
+
+            if(player.job) {
+                let jobName = player.job.name[0].toUpperCase() + player.job.name.slice(1);;
+                ctx.fillText(jobName, 300, yPos);
+            }
+
             if(player.currentState == "ready") {
                 ctx.fillStyle     = "#00ff00";
                 ctx.fillText("READY", 500, yPos);
@@ -70,7 +131,9 @@ export default class extends ObjectView {
     }
 
     confirm() {
-        if(this.selectedOption == "Leave") {
+        if(this.selectedOption == "Select Job") {
+            this.openJobDialog(this._view);
+        } else if(this.selectedOption == "Leave") {
             this._view.emit("leave-game");
         } else if(this.selectedOption == "Ready") {
             this._ready = !this._ready;
