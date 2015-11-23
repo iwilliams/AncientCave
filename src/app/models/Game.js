@@ -87,7 +87,7 @@ export default class extends BaseModel {
         }
     }
 
-    checkPlayerAction() {
+    checkPlayerAction(p, message) {
         if(this.currentState === "playing") {
             if(this._room.currentState == "idle") {
                 let readyToMove = true;
@@ -99,13 +99,15 @@ export default class extends BaseModel {
                     this._lookForTrouble();
                 }
             } else if (this._room.currentState == "battle") {
-                let readyToAttack = true;
-                for(let player of this.players.values()) {
-                    readyToAttack = readyToAttack && player.currentAction === "attack";
-                }
-
-                if(readyToAttack) {
-                    this._combatPhase();
+                if(message === "attack") {
+                    p.attack().then(()=>{
+                        this.emit("player-attack", p);
+                        this._combatPhase();
+                        p.cooldown = 0;
+                        return p.chargeCooldown();
+                    }).then(()=>{
+                        this.emit('player-cooldown', p);
+                    });
                 }
             }
         }
@@ -296,8 +298,8 @@ export default class extends BaseModel {
             Logger.log(message);
             for(let player of this._localPlayers.values()) {
                 player.currentAction = message;
+                this.checkPlayerAction(player, message);
             }
-            this.checkPlayerAction();
         });
 
         // Listen for remote option select
@@ -305,7 +307,7 @@ export default class extends BaseModel {
         dispatcher.on("remote-option-select", (message)=>{
             let player = this._remotePlayers.get(message.id);
             player.currentAction = message.option;
-            this.checkPlayerAction();
+            this.checkPlayerAction(player, message.option);
         });
     }
 
