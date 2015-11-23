@@ -123,7 +123,7 @@ class Player extends BaseModel {
                     }
                     res();
                 }
-            }, 30);
+            }, 60);
         });
     }
 
