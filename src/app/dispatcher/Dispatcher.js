@@ -76,6 +76,10 @@ export default class extends EventEmitter {
             this.emit("remote-player-state", message);
         });
 
+        multiplayerService.on("job-select", (message)=>{
+            this.emit("remote-player-job-select", message);
+        });
+
         multiplayerService.on("option-select", (message)=>{
             this.emit("remote-option-select", message);
         });
@@ -88,6 +92,11 @@ export default class extends EventEmitter {
         view.on("start-mp", this.initMultiplayerGame.bind(this));
         view.on("leave-game", ()=>{
             this.leaveGame()
+        });
+
+        view.on("job-select", (job)=>{
+            this._multiplayerController.jobSelect(job);
+            this.emit("local-player-job-select", job);
         });
 
         view.on("ready", (ready)=>{

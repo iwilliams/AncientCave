@@ -130,6 +130,17 @@ export default class extends EventEmitter {
         this._sendMessage(message);
     }
 
+    jobSelect(job) {
+        let message = {
+            "event": "job-select",
+            "data": {
+                "id": this._id,
+                "job": job
+            }
+        };
+        this._sendMessage(message);
+    }
+
     optionSelect(option) {
         let message = {
             "event": "option-select",
@@ -167,6 +178,10 @@ export default class extends EventEmitter {
 
         if(message.event == "player-state") {
             this.emit("player-state", message.data);
+        }
+
+        if(message.event == "job-select") {
+            this.emit("job-select", message.data);
         }
 
         if(message.event == "option-select") {
