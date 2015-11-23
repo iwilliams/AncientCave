@@ -113,9 +113,21 @@ class Player extends BaseModel {
                 this.cooldown++;
                 if(this.cooldown == this.maxCooldown) {
                     clearInterval(this._cooldownInterval);
+                    if(this._attack)
+                        this._attack();
                     res();
                 }
             }, 15);
+        });
+    }
+
+    attack() {
+        return new Promise((res, rej)=>{
+            if(this.cooldown == this.maxCooldown) {
+                res();
+            } else {
+                this._attack = res;
+            }
         });
     }
 }
