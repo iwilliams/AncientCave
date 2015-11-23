@@ -4,11 +4,11 @@ export default class {
     }
 
     static debug(msg) {
-        console.log(`%c${msg}`, 'font-size: 15px; background: #222; color: #bada55;');
+        console.trace(`%c${msg}`, 'font-size: 15px; background: #222; color: #bada55;');
     }
 
     static log(msg) {
-        console.log(msg);
+        console.trace(msg);
     }
 
     static error(msg) {

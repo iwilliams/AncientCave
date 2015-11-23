@@ -1,19 +1,45 @@
-import Renderer from './Renderer';
+import ObjectView      from './ObjectView';
 import Utils from '../services/Utils';
 import Config from '../../Config';
 
-export default class extends Renderer {
-    constructor(object) {
+// Static Room Types
+//static get TYPE_CAVE() {
+    //return {
+        //floor: 'goodtile.png',
+        //wall: 'shitwall.png'
+    //};
+//}
+
+//static get TYPE_TEMPLE() {
+    //return {
+        //floor: 'grass.png',
+        //wall: 'pillars.png'
+    //};
+//}
+
+export default class extends ObjectView {
+    constructor(room) {
         super();
-        this.room = object;
+        this._room = room;
         this._floorOffset = 0;
         this._wallOffset  = 0;
+
+        this._images = [
+            {
+                "name": "floor",
+                "image": "goodtile.png",
+            },
+            {
+                "name": "wall",
+                "image": "shitwall.png",
+            }
+        ];
     }
 
-    init() {
+    loadResources() {
         return Promise.all([
-            this.loadResource("floor", this.room.type.floor),
-            this.loadResource("wall",  this.room.type.wall)
+            this.loadResource("floor", "goodtile.png"),
+            this.loadResource("wall",  "shitwall.png")
         ]);
     }
 
@@ -40,16 +66,6 @@ export default class extends Renderer {
             }
         }
 
-            //this._resources.get('sprite'),
-            //this.player.isWalking ? Config.SPRITE_SIZE*(this.frame) : 0, // DX
-            //0, // DY
-            //Config.SPRITE_SIZE, // dWidth
-            //Config.SPRITE_SIZE, // dHeight
-            //xOffset*(playerWidth), // sx ~ Replace with object X Pos
-            //this.player.yPos*(playerWidth), // sy ~ Replace with object Y Pos
-            //playerWidth, // sWidth
-            //playerWidth  // sHeight
-
         // Render Wall
         let wall = this._resources.get('wall');
         let wallWidth = wall.width*Config.SPRITE_SCALE;
@@ -69,7 +85,7 @@ export default class extends Renderer {
 
         // Calculate Offsets
         let xStep = Config.SPRITE_SIZE*Config.SPRITE_SCALE/16;
-        if(this.room.isMoving) {
+        if(this._room.currentState == "moving") {
             this._floorOffset += xStep;
             if(this._floorOffset >= floorWidth - 1) this._floorOffset = 0;
 

@@ -1,5 +1,4 @@
 import Ui from './Ui';
-import BattleUiRenderer from '../views/BattleUiRenderer';
 
 export default class extends Ui {
     /**

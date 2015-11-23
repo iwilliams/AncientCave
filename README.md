@@ -4,11 +4,8 @@
 /  _  \ | | | (__| |  __/ | | | |_  / /__| (_| |\ V /  __/
 \_/ \_/_| |_|\___|_|\___|_| |_|\__| \____/\__,_| \_/ \___|
 ```
-BRB BRB
-BRB BRB
-BRB BRB
-BRB BRB
-BRB BRB
+
+Stream will start in a moment... Patience Grasshopper...
 
 This game aims to be a pseudo remake of the Final Fantasy V Rom Hack Ancient Cave. The basic idea is a Final Fantasy inspired rogue-esque game.
 
@@ -18,19 +15,16 @@ https://github.com/iwilliams/AncientCave
 Developing a JS clone of a FFV mod called Ancient Cave
 
     @todo:
-        - Basic Project Organization ~ DONE
-        - Basic Renderer             ~ DONE
-        - Basic Online               ~ DONE
-        - Basic UI                   ~ DONE
-        - Basic Input                ~ DONE
         - Begin Combat Logic         ~ IN PROGRESS
+        - Refactor base engine code  ~ TODO
 
     Twitter: @ianawill
     Twtich:  ianawill
     Github:  iwilliams
 
 # Install
-To pull down packages:
+
+To pull down packages
 `npm install`
 
 To compile code:

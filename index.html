@@ -20,6 +20,51 @@
                 transform: translate3d(-50%, -50%, 0);
                 //border: 1px solid #fff;
             }
+
+            .dialog {
+                width: 100%;
+                max-width: 500px;
+                position: absolute;
+                z-index: 1;
+                top: 50%;
+                left: 50%;
+                height: auto;
+                max-height: 100%;
+                scroll: auto;
+                background: black;
+                border: 1px solid #fff;
+                padding: 10px;
+
+                -webkit-transform: translate3d(-50%, -50%, 0);
+                -moz-transform: translate3d(-50%, -50%, 0);
+                -ms-transform: translate3d(-50%, -50%, 0);
+                transform: translate3d(-50%, -50%, 0);
+            }
+
+            .dialog label {
+                display: inline-block;
+                width: 100%;
+            }
+
+            .dialog input {
+                display: inline-block;
+                width: 100%;
+                max-width: 400px;
+                margin: 10px 0 20px;
+            }
+
+            .dialog button {
+                display: inline-block;
+                border: none;
+                padding: 10px 20px;
+                background: #fff;
+                cursor: pointer;
+            }
+
+            .dialog button:disabled {
+                cursor: default;
+            }
+
         </style>
     </head>
     <body>
@@ -30,20 +75,6 @@
 <!--\_/ \_/_| |_|\___|_|\___|_| |_|\__| \____/\__,_| \_/ \___|-->
         <!--</pre>-->
     <!--<button>Full Screen</button>-->
-        <form>
-            <label>Name:</label><input name="name" type="text">
-            <label>Class:</label>
-            <select name="job">
-                <option value="knight">Knight</option>
-                <option value="villain">Villain</option>
-                <option value="herbalist">Herbalist</option>
-                <option value="clairvoyant">Clairvoyant</option>
-                <option value="necromancer">Necromancer</option>
-            </select>
-            <label>Id:</label><input name="id" type="text">
-            <label>Host:</label><input name="host" type="text">
-            <button>Start</button>
-        </form>
         <script src="dist/vendor.js"></script>
         <script src="dist/AncientCave.js"></script>
     </body>

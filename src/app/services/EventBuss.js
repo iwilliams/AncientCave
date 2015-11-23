@@ -1,3 +1,5 @@
+import Logger from './Logger';
+
 var DEFAULT_MAX_LISTENERS = 12
 
 function error(message, ...args){
@@ -66,6 +68,7 @@ export default class {
     }
 
     emit(type, ...args){
+        Logger.debug(`Event Buss Emit: ${type}`);
         var listeners = this._events[type]
         if(!listeners || !listeners.length) {
           return false

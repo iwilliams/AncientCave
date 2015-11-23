@@ -62,4 +62,15 @@ export default class {
 
         return argsParsed;
     }
+
+    // Goodenough UUID?
+    // http://stackoverflow.com/questions/10726909/random-alpha-numeric-string-in-javascript
+    randomString(length, chars) {
+        if(!chars) {
+            chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        }
+        let result = '';
+        for (let i = length; i > 0; --i) result += chars[Math.round(Math.random() * (chars.length - 1))];
+        return result;
+    }
 }

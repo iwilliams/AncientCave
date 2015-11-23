@@ -1,22 +1,24 @@
-import Renderer from './Renderer';
+import ObjectView      from './ObjectView';
 import Utils from '../services/Utils';
 import Config from '../../Config';
 
-export default class extends Renderer {
-    constructor(monster) {
+export default class extends ObjectView {
+    constructor(enemy) {
         super()
-        this.monster = monster;
-    }
+        this._enemy = enemy;
 
-    init() {
-        return Promise.all([
-            this.loadResource('sprite', this.monster.type.sprite),
-        ]);
+        this._images = [
+            {
+                "name": "sprite",
+                "image": 'wurm-sheet.png',
+            }
+        ];
     }
 
     render(ctx, frame) {
         this.frame = (frame < Config.FPS/2) ? 0 : 1;
         let sprite = this._resources.get('sprite');
+
         ctx.drawImage(...[
             sprite,
             sprite.width/3*this.frame,

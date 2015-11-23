@@ -1,8 +1,9 @@
 // Import Utils
-import Utils    from '../services/Utils';
-import Logger   from '../services/Logger';
-import Config   from '../../Config';
-import Rng      from '../services/Rng';
+import Utils     from '../services/Utils';
+import Logger    from '../services/Logger';
+import Config    from '../../Config';
+import Rng       from '../services/Rng';
+import EventBuss from '../services/EventBuss';
 
 // Import Controllers
 import MultiplayerController     from './MultiplayerController';
@@ -31,6 +32,8 @@ export default class {
     init(name, job, id, host) {
         let queryParams = Utils.parseQuery(window.location.search);
 
+        this._eventBuss = new EventBuss();
+
         this.players = new Map();
         let promises = [];
 
@@ -52,7 +55,7 @@ export default class {
 
         // Initialize Local Player
         let p1 = new Player(xOffset, yOffset, name, job);
-        this.players.set(p1.name, p1);
+        this.players.set(this, p1);
         promises.push(p1.init());
         window.player = p1;
 
@@ -67,6 +70,7 @@ export default class {
 
         // Initialize Room
         this.room = new Room(Room.TYPE_CAVE, [this.monster], this.players);
+        this.room.attachEvents(this._eventBuss);
         promises.push(this.room.init());
 
         this.room.on("start-battle", ()=>{
@@ -103,12 +107,12 @@ export default class {
         // Add player when peer connects
         this.multiplayerController.on("peer-connect", (message)=>{
             Logger.debug("Add player");
-            let p = new Player(xOffset, ++yOffset, message.data.player.name, message.data.player.job);
+            let p = new Player.createFromState(message.data.player);
+            p.id = message.from;
+
             p.init().then(()=>{
                 Logger.debug(`Add player with id ${message.from}`);
-                this.players.set(message.from, p);
-                Logger.log(this.players);
-                this.objects.add(p);
+                this.addPlayer(p);
             });
 
             // If this is our first connection and we don't already have a seed then set it
@@ -127,44 +131,58 @@ export default class {
         // Sync Player state
         this.multiplayerController.on("player-state", (message)=>{
             Logger.debug("Set player to Ready");
+
             let player = this.players.get(message.from);
-            player.ready = message.data.player.ready;
-            player.action = message.data.player.action;
+            this.updatePlayerState(player, message.data.player);
 
             if(!this.room.isBattle) {
                 if(player.ready) player.action = "ready";
-                this.updateRoomState();
+            }
+            this._eventBuss.emit("player-state");
+        });
+
+        /////////////////////////////
+        // LISTEN FOR GLOBAL EVENTS//
+        /////////////////////////////
+        this._eventBuss.on("room-state", ()=>{//
+            Logger.debug("Update Room State");
+            for(let player of this.players.values()) {
+                if(this.room.isMoving) {
+                    player.isWalking = true;
+                    player.action = "walk";
+                } else {
+                    player.ready = false;
+                    player.action = "wait";
+                }
+                Logger.log(player);
             }
         });
 
         /////////////////////////////
         // LISTEN FOR INPUT EVENTS //
         /////////////////////////////
-
         // Initialize Input Controller
         this.inputController = new InputController();
 
-        //this.inputController.on('click', ()=>{
-            //if(!this.room.isBattle) {
-                //p1.ready = !p1.ready;
-                //if(player.ready) player.action = "ready";
-                //else player.action = "waiting";
-                //this.multiplayerController.click();
-                //this.updateRoomState();
-            //}
-        //});
-
         this.inputController.on('enter', ()=>{
             if(this.room.isBattle) {
-                p1.ready = !p1.ready;
-                p1.setAction(this.ui.getSelectedBattleOption());
+                //p1.ready = !p1.ready;
+                //p1.setAction(this.ui.getSelectedBattleOption());
+
+                let playerState = {
+                    "ready": true,
+                    "action": this.ui.getSelectedBattleOption()
+                };
+
+                this.updatePlayerState(p1, playerState);
                 this.multiplayerController.click();
+                this._eventBuss.emit("player-state");
             } else {
                 p1.ready = !p1.ready;
                 if(player.ready) player.action = "ready";
                 else player.action = "waiting";
+                this._eventBuss.emit("player-state");
                 this.multiplayerController.click();
-                this.updateRoomState();
             }
         });
 
@@ -205,24 +223,21 @@ export default class {
         return Promise.all(promises);
     }
 
-    updateRoomState() {
-        // Calculate if we should be moving based on player state
-        // NEEDS TO BE MOVED
-        let shouldMove = true;
-        for (let player of this.players.values()) {
-            shouldMove = shouldMove && player.ready;
+    addPlayer(p) {
+        let players = this.players.values();
+        let yPos = 0;
+        for(let player of players) {
+            yPos = player.yPos;
         }
-
-        // Decide if we need to start or end combat
-        if(shouldMove && !this.room.isLooking) {
-            this.room.setNextEncounter(this.rng.next() * 500);
-            this.room.lookForTrouble();
-        } else if(!this.room.isLooking && shouldMove) {
-            this.room.setNextEncounter(this.rng.next() * 500);
-            this.room.startLooking();
-        }
+        yPos++;
+        p.yPos = yPos;
+        this.players.set(p.id, p);
+        this.objects.add(p);
     }
 
+    updatePlayerState(player, state) {
+        player.deserialize(state);
+    }
 
     /**
      * Progress Game Logic by calling tick on every object
