@@ -31,7 +31,7 @@ export default class extends ObjectView {
             },
             {
                 "name": "wall",
-                "image": "shitwall.png",
+                "image": "shitwall2.png",
             }
         ];
     }
@@ -39,7 +39,7 @@ export default class extends ObjectView {
     loadResources() {
         return Promise.all([
             this.loadResource("floor", "goodtile.png"),
-            this.loadResource("wall",  "shitwall.png")
+            this.loadResource("wall",  "shitwall2.png")
         ]);
     }
 
