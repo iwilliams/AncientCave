@@ -81,7 +81,8 @@ export default class extends EventEmitter {
             "event": "peer-connect",
             "from": this._id,
             "data": {
-                "name": this._name
+                "name": this._name,
+                "job": this._selectedJob || undefined
             }
         }
 
@@ -137,6 +138,7 @@ export default class extends EventEmitter {
                 "job": job
             }
         };
+        this._selectedJob = job;
         this._sendMessage(message);
     }
 

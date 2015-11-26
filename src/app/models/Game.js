@@ -241,7 +241,7 @@ export default class extends BaseModel {
             Logger.debug("Game: Add Player message recieved");
             Logger.log(message);
 
-            let p = new Player(message.name, message.id);
+            let p = new Player(message.name, message.id, message.job);
 
             p.init().then(()=>{
                 this.addPlayer(p, message.isLocal);

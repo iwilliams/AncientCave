@@ -49,7 +49,7 @@ class Player extends BaseModel {
         return [...JOBS.values()];
     }
 
-    constructor(name, id) {
+    constructor(name, id, job) {
         super();
         this._name = name;
         this._id = id;
@@ -63,6 +63,8 @@ class Player extends BaseModel {
         this.currentState = "idle";
 
         this.currentAction = "thinking";
+
+        if(job) this.job = job;
     }
 
     set job(jobName) {

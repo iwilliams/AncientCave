@@ -49,7 +49,8 @@ export default class extends EventEmitter {
         Logger.debug("Dispatcher: Broadcast Add Player Message");
         this.emit("add-player", {
             "id": message.from,
-            "name": message.data.name
+            "name": message.data.name,
+            "job": message.data.job
         });
     }
 
