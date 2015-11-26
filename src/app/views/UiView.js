@@ -227,6 +227,9 @@ export default class extends ObjectView {
 
     confirm() {
         Logger.debug("Ui emit event option-select: " + this._ui.currentOptions[this._selectedOptionIndex]);
-        this._view.emit("option-select", this._ui.currentOptions[this._selectedOptionIndex]);
+        this._view.emit("option-select", {
+            "id": this._view._game.localPlayer.id,
+            "option": this._ui.currentOptions[this._selectedOptionIndex]
+        });
     }
 }

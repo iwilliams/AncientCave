@@ -41,8 +41,6 @@ export default class extends BaseModel {
             this._dispatcher = dispatcher;
 
             this._players = new Map();
-            this._localPlayers = new Map();
-            this._remotePlayers = new Map();
 
             // LISTEN FOR EVENTS
             this.listenToDispatcher(this._dispatcher);
@@ -60,9 +58,8 @@ export default class extends BaseModel {
             this._currentState = state;
             if(this._currentState == "main menu") {
                 // Reset all players
-                this._players       = new Map();
-                this._localPlayers  = new Map();
-                this._remotePlayers = new Map();
+                this._players     = new Map();
+                this._localPlayer = undefined;
             }
             this.emit("game-state", this._currentState);
         }
@@ -135,6 +132,11 @@ export default class extends BaseModel {
      * Return players
      */
     get players() {return this._players;}
+
+    /**
+     * Return the local player
+     */
+    get localPlayer() {return this._localPlayer;}
 
     /**
      * Return Current Room
@@ -231,26 +233,14 @@ export default class extends BaseModel {
             this.currentState = message;
         });
 
-        // Add player when peer connects
-        dispatcher.on("add-remote-player", (message)=>{
-            Logger.debug("Game: Add Remote Player message recieved");
+        dispatcher.on("add-player", (message)=>{
+            Logger.debug("Game: Add Player message recieved");
             Logger.log(message);
 
             let p = new Player(message.name, message.id);
 
             p.init().then(()=>{
-                this.addRemotePlayer(p);
-            });
-        });
-
-        dispatcher.on("add-local-player", (message)=>{
-            Logger.debug("Game: Add Local Player message recieved");
-            Logger.log(message);
-
-            let p = new Player(message.name, message.id);
-
-            p.init().then(()=>{
-                this.addLocalPlayer(p);
+                this.addPlayer(p, message.isLocal);
             });
         });
 
@@ -260,94 +250,43 @@ export default class extends BaseModel {
             Logger.log(message);
 
             this._players.delete(message.id);
-            this._localPlayers.delete(message.id);
-            this._remotePlayers.delete(message.id);
 
             for(let player of this._players.values()) {
                 player.currentState = "idle";
             }
         });
 
-        // Local job select
-        dispatcher.on("local-player-job-select", (message)=>{
-            for(let player of this._localPlayers.values()) {
-                player.job = message;
-            }
-        });
-
-        // Remote job select
-        dispatcher.on("remote-player-job-select", (message)=>{
-            let player = this._remotePlayers.get(message.id);
+        // Alter player's job
+        dispatcher.on("player-job", (message)=>{
+            let player = this._players.get(message.id);
             player.job = message.job;
         });
 
-        // Sync Local Player state
-        dispatcher.on("local-player-state", (message)=>{
-            Logger.debug("Game: Local Player State message recieved");
-            Logger.log(message);
-
-            for(let player of this._localPlayers.values()) {
-                player.currentState = message.state;
-            }
-
-            // Progress Game logic accoridng to player state
-            this.checkPlayerState();
-        });
-
-        // Sync Remote Player state
-        dispatcher.on("remote-player-state", (message)=>{
+        // Alter player's state
+        dispatcher.on("player-state", (message)=>{
             Logger.debug("Game: Remote Player State message recieved");
             Logger.log(message);
 
-            let player = this._remotePlayers.get(message.id);
+            let player = this._players.get(message.id);
             player.currentState = message.state;
 
             // Progress Game logic accoridng to player state
             this.checkPlayerState();
         });
 
-        // Listen for local option select
-        // CHANGE TO PLAYER-ACTION
-        dispatcher.on("local-option-select", (message)=>{
-            Logger.debug("Game: local-option-select");
-            Logger.log(message);
-            for(let player of this._localPlayers.values()) {
-                player.currentAction = message;
-                this.checkPlayerAction(player, message);
-            }
-        });
-
         // Listen for remote option select
         // CHANGE TO PLAYER-ACTION
-        dispatcher.on("remote-option-select", (message)=>{
-            let player = this._remotePlayers.get(message.id);
+        dispatcher.on("option-select", (message)=>{
+            let player = this._players.get(message.id);
             player.currentAction = message.option;
             this.checkPlayerAction(player, message.option);
         });
     }
 
     /**
-     * Add a Local Player
-     */
-    addLocalPlayer(p) {
-        p.isLocal = true;
-        this._localPlayers.set(p.id, p);
-        this.addPlayer(p);
-    }
-
-    /**
-     * Add a Remote Player
-     */
-    addRemotePlayer(p) {
-        p.isLocal = false;
-        this._remotePlayers.set(p.id, p);
-        this.addPlayer(p);
-    }
-
-    /**
      * Adds a player regardless of remote or local
      */
-    addPlayer(p) {
+    addPlayer(p, isLocal) {
         Logger.debug("Game: Adding Player");
         Logger.log(p);
         let players = this._players.values();
@@ -359,6 +298,9 @@ export default class extends BaseModel {
         yPos += 1.2;
         p.yPos = yPos;
         this._players.set(p.id, p);
+        if(isLocal) {
+            this._localPlayer = p;
+        }
         this.emit("add-player", p);
     }
 }

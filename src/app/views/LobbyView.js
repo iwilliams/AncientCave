@@ -56,13 +56,17 @@ export default class extends ObjectView {
 
         this._dialog = {
             element: element,
-            remove: function() {
-                this.element.remove()
+            remove: ()=>{
+                element.remove()
+                this._dialog = undefined;
             },
-            confirm: function() {
+            confirm: ()=>{
                 if(jobSelect.value) {
-                    view.emit("job-select", jobSelect.value);
-                    this.remove();
+                    view.emit("job-select", {
+                        "job": jobSelect.value,
+                        "id": this._view._game.localPlayer.id
+                    });
+                    this._dialog.remove();
                 }
             }
         };
@@ -131,13 +135,20 @@ export default class extends ObjectView {
     }
 
     confirm() {
-        if(this.selectedOption == "Select Job") {
-            this.openJobDialog(this._view);
-        } else if(this.selectedOption == "Leave") {
-            this._view.emit("leave-game");
-        } else if(this.selectedOption == "Ready") {
-            this._ready = !this._ready;
-            this._view.emit("ready", this._ready);
+        if(!this._dialog) {
+            if(this.selectedOption == "Select Job") {
+                this.openJobDialog(this._view);
+            } else if(this.selectedOption == "Leave") {
+                this._view.emit("leave-game");
+            } else if(this.selectedOption == "Ready") {
+                this._ready = !this._ready;
+                this._view.emit("ready", {
+                    "id": this._view._game.localPlayer.id,
+                    "state": this._ready
+                });
+            }
+        } else {
+            this._dialog.confirm();
         }
     }
 

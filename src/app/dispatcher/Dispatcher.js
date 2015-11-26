@@ -25,9 +25,10 @@ export default class extends EventEmitter {
         this._networkService.init().then(()=>{
             this.registerMultiplayerMessages(this._networkService);
             Logger.debug("Dispatcher: Broadcast Add Player Message");
-            this.emit("add-local-player", {
-                "id": this._networkService.id,
-                "name": message.name
+            this.emit("add-player", {
+                "id": Symbol(),
+                "name": message.name,
+                "isLocal": true
             });
             this.emit("game-state", "lobby");
         });
@@ -46,7 +47,7 @@ export default class extends EventEmitter {
         Logger.log(message);
 
         Logger.debug("Dispatcher: Broadcast Add Player Message");
-        this.emit("add-remote-player", {
+        this.emit("add-player", {
             "id": message.from,
             "name": message.data.name
         });
@@ -73,15 +74,15 @@ export default class extends EventEmitter {
         multiplayerService.on("peer-disconnect", this.peerDisconnect.bind(this));
 
         multiplayerService.on("player-state", (message)=>{
-            this.emit("remote-player-state", message);
+            this.emit("player-state", message);
         });
 
         multiplayerService.on("job-select", (message)=>{
-            this.emit("remote-player-job-select", message);
+            this.emit("player-job", message);
         });
 
         multiplayerService.on("option-select", (message)=>{
-            this.emit("remote-option-select", message);
+            this.emit("option-select", message);
         });
     }
 
@@ -94,22 +95,24 @@ export default class extends EventEmitter {
             this.leaveGame()
         });
 
-        view.on("job-select", (job)=>{
-            this._networkService.jobSelect(job);
-            this.emit("local-player-job-select", job);
+        view.on("job-select", (message)=>{
+            Logger.log(message);
+            this._networkService.jobSelect(message.job);
+            this.emit("player-job", message);
         });
 
-        view.on("ready", (ready)=>{
-            let state = ready ? "ready" : "idle";
+        view.on("ready", (message)=>{
+            let state = message.state ? "ready" : "idle";
             this._networkService.playerState(state);
-            this.emit("local-player-state", {
+            this.emit("player-state", {
+               "id": message.id,
                 "state": state
             });
         });
 
-        view.on("option-select", (option)=>{
-            this._networkService.optionSelect(option);
-            this.emit("local-option-select", option);
+        view.on("option-select", (message)=>{
+            this._networkService.optionSelect(message.option);
+            this.emit("option-select", message);
         });
     }
 }

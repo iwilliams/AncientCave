@@ -206,6 +206,7 @@ export default class extends EventEmitter {
         });
 
         game.on("start-battle", ()=>{
+            this._soundService.play("combat-theme", true);
             this._views = [
                 ...this._views,
                 ...this._enemyViews
@@ -219,6 +220,7 @@ export default class extends EventEmitter {
         });
 
         game.on("end-battle", ()=>{
+            this._soundService.stop("combat-theme");
             this._views = [
                 this._roomView,
                 ...this._playerViews.values(),
