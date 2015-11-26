@@ -114,6 +114,14 @@ export default class extends EventEmitter {
         return views;
     }
 
+    getPlayingViews() {
+        return [
+            this._roomView,
+            ...this._playerViews.values(),
+            this._uiView
+        ];
+    }
+
     startRender() {
         this.then = Date.now();
         this.interval = 1000/Config.FPS;
@@ -190,6 +198,15 @@ export default class extends EventEmitter {
         game.on("add-player", (player)=>{
             if(game.currentState === "loby")
                 this._lobbyView._ready = false;
+        });
+
+        game.on("remove-player", (player)=>{
+            Logger.debug("VIEW REMOVE PLAYER");
+            Logger.debug(player.id);
+            if(this._playerViews) {
+                this._playerViews.delete(player.id);
+                this._views = this.getPlayingViews();
+            }
         });
 
         game.on("add-enemy", (enemy)=>{
