@@ -9,6 +9,7 @@ let JOB_SPRITES = {
     "villain": "villain2-sheet.png",
     "knight": "knight-sheet.png",
     "necromancer": "necromancer-sheet.png",
+    "ninja": "ninja-sheet.png"
 };
 
 export default class extends ObjectView {
