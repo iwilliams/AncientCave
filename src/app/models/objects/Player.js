@@ -43,6 +43,14 @@ JOBS.set("necromancer", {
     'position': 'front'
 });
 
+JOBS.set("ninja", {
+    'name': 'ninja',
+    'health': 60,
+    'mana': 30,
+    'cooldown': 30,
+    'position': 'front'
+});
+
 class Player extends BaseModel {
 
     static getJobs() {
