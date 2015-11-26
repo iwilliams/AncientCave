@@ -167,6 +167,7 @@ export default class extends EventEmitter {
 
                 let uiView = new UiView(game.ui, game.players, this);
                 this._uiView = uiView;
+                //uiView.requestInput().then(this.handleUiInput.bind(this));
                 promises.push(uiView.loadResources());
 
                 // Load sounds
@@ -219,6 +220,12 @@ export default class extends EventEmitter {
             }
         });
 
+        game.on("player-attack", (player)=>{
+            if(player == this._game.localPlayer) {
+                this._uiView.clearLastOption();
+            }
+        });
+
         game.on("end-battle", ()=>{
             this._soundService.stop("combat-theme");
             this._views = [
@@ -227,9 +234,10 @@ export default class extends EventEmitter {
                 this._uiView
             ];
         });
+    }
 
-        game.on("set-room", (room)=>{
-        });
+    handleUiInput(input) {
+        this.emit("option-select", input);
     }
 
     /**

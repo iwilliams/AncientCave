@@ -1,4 +1,4 @@
-import Config from '../../Config';
+import Config          from '../../Config';
 import ObjectView      from './ObjectView';
 import Logger          from '../services/Logger';
 
@@ -226,10 +226,17 @@ export default class extends ObjectView {
     }
 
     confirm() {
-        Logger.debug("Ui emit event option-select: " + this._ui.currentOptions[this._selectedOptionIndex]);
-        this._view.emit("option-select", {
-            "id": this._view._game.localPlayer.id,
-            "option": this._ui.currentOptions[this._selectedOptionIndex]
-        });
+        let currentOption = this._ui.currentOptions[this._selectedOptionIndex];
+        if(currentOption !== this._lastOption) {
+            this._view.emit("option-select", {
+                "id": this._view._game.localPlayer.id,
+                "option": this._ui.currentOptions[this._selectedOptionIndex]
+            });
+            this._lastOption = currentOption;
+        }
+    }
+
+    clearLastOption() {
+        this._lastOption = undefined;
     }
 }

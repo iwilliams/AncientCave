@@ -97,20 +97,13 @@ export default class extends BaseModel {
                 }
             } else if (this._room.currentState == "battle") {
                 if(message === "attack") {
-                    if(!p.waitingToAttack) {
-                        p.attack().then(()=>{
-                            this.emit("player-attack", p);
-                            this._combatPhase();
-                            p.cooldown = 0;
-                            return p.chargeCooldown();
-                        }).then(()=>{
-                            this.emit('player-cooldown', p);
-                        });
-                    }
+                    this._playerAttack(p);
                 }
             }
         }
     }
+
+
 
 
     /**
@@ -190,15 +183,25 @@ export default class extends BaseModel {
         this._ui.setBattleOptions();
         for(let player of this.players.values()) {
             player.beginCombat();
-            player.chargeCooldown().then(()=>{
-                this.emit('player-cooldown', player);
-            });
+            player.chargeCooldown(this._playerCooldownReady.bind(this));
         }
         this.emit('start-battle');
     }
 
-    //_playerAttack(player) {
-    //}
+    _playerCooldownReady(player) {
+        this.emit("player-cooldown", player);
+        if(player.currentAction === "attack") {
+            this._playerAttack(player);
+        }
+    }
+
+    _playerAttack(p) {
+        if(p.readyToAttack) {
+            this._combatPhase();
+            p.chargeCooldown(this._playerCooldownReady.bind(this));
+            this.emit("player-attack", p);
+        }
+    }
 
     _combatPhase() {
         let shouldEndBattle = true;
@@ -207,17 +210,18 @@ export default class extends BaseModel {
             shouldEndBattle = shouldEndBattle && (enemy.health <= 0);
         }
 
-        Logger.debug("Combat Phase: " + shouldEndBattle);
-
         if(shouldEndBattle) {
-            this._room.currentState = "idle";
-            this._ui.setIdleOptions();
-            this.emit('end-battle');
+            this._endBattle();
         }
+    }
+
+    _endBattle() {
+        this._room.currentState = "idle";
+        this._ui.setIdleOptions();
+        this.emit('end-battle');
 
         for(let player of this.players.values()) {
-            player.currentState  = "idle";
-            player.currentAction = "thinking";
+            player.endCombat();
         }
     }
 
