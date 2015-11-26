@@ -253,10 +253,19 @@ export default class extends BaseModel {
             Logger.debug("Game: Remove Player message recieved");
             Logger.log(message);
 
-            this._players.delete(message.id);
+            // Get and then delete player
+            let playerToRemove = this._players.get(message.id);
+            let playerRemoved = this._players.delete(playerToRemove.id);
 
-            for(let player of this._players.values()) {
-                player.currentState = "idle";
+            // Make sure the player was there
+            if(playerRemoved) {
+                this.emit("remove-player", playerToRemove);
+
+                if(this.currentState == "lobby") {
+                    for(let player of this._players.values()) {
+                        player.currentState = "idle";
+                    }
+                }
             }
         });
 
