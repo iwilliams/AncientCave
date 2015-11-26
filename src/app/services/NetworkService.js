@@ -1,7 +1,6 @@
 import Config       from '../../Config';
 import EventEmitter from '../mixins/EventEmitter';
-import Logger       from '../Services/Logger';
-
+import Logger       from './Logger';
 
 export default class extends EventEmitter {
     constructor(name, host) {
@@ -82,7 +81,8 @@ export default class extends EventEmitter {
             "event": "peer-connect",
             "from": this._id,
             "data": {
-                "name": this._name
+                "name": this._name,
+                "job": this._selectedJob || undefined
             }
         }
 
@@ -138,6 +138,7 @@ export default class extends EventEmitter {
                 "job": job
             }
         };
+        this._selectedJob = job;
         this._sendMessage(message);
     }
 

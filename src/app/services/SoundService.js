@@ -6,6 +6,9 @@ export default class {
     }
 
     loadResources() {
+        if(Config.DISABLE_AUDIO) {
+            return;
+        }
         let promises = [];
 
         let sounds = [
@@ -20,7 +23,15 @@ export default class {
             {
                 "name": "cooldown-ready",
                 "url": this._soundPath + "cooldown-ready.mp3"
-            }
+            },
+            {
+                "name": "combat-theme",
+                "url": this._soundPath + "qrtrnoteqombat.gb.mp3"
+            },
+            {
+                "name": "dungeon-theme",
+                "url": this._soundPath + "dungeondelay.gb.mp3"
+            },
         ];
 
         this._sounds = new Map();
@@ -39,8 +50,16 @@ export default class {
         return Promise.all(promises);
     }
 
-    play(soundName) {
+    play(soundName, loop) {
+        if(Config.DISABLE_AUDIO) return;
         let sound = this._sounds.get(soundName);
+        sound.loop(loop || false);
         sound.play();
+    }
+
+    stop(soundName) {
+        if(Config.DISABLE_AUDIO) return;
+        let sound = this._sounds.get(soundName);
+        sound.stop();
     }
 }

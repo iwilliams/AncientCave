@@ -1,6 +1,6 @@
-import Logger       from '../services/Logger';
-import EventEmitter from '../mixins/EventEmitter';
-import MultiplayerController from '../controllers/MultiplayerController';
+import Logger         from '../services/Logger';
+import EventEmitter   from '../mixins/EventEmitter';
+import NetworkService from '../services/NetworkService';
 
 export default class extends EventEmitter {
     constructor() {
@@ -21,20 +21,21 @@ export default class extends EventEmitter {
             args = [message.name];
         }
         // Init mp controller
-        this._multiplayerController = new MultiplayerController(...args);
-        this._multiplayerController.init().then(()=>{
-            this.registerMultiplayerEvents(this._multiplayerController);
+        this._networkService = new NetworkService(...args);
+        this._networkService.init().then(()=>{
+            this.registerMultiplayerMessages(this._networkService);
             Logger.debug("Dispatcher: Broadcast Add Player Message");
-            this.emit("add-local-player", {
-                "id": this._multiplayerController.id,
-                "name": message.name
+            this.emit("add-player", {
+                "id": Symbol(),
+                "name": message.name,
+                "isLocal": true
             });
             this.emit("game-state", "lobby");
         });
     }
 
     leaveGame() {
-        this._multiplayerController.disconnect();
+        this._networkService.disconnect();
         this.emit("game-state", "main menu");
     }
 
@@ -46,9 +47,10 @@ export default class extends EventEmitter {
         Logger.log(message);
 
         Logger.debug("Dispatcher: Broadcast Add Player Message");
-        this.emit("add-remote-player", {
+        this.emit("add-player", {
             "id": message.from,
-            "name": message.data.name
+            "name": message.data.name,
+            "job": message.data.job
         });
     }
 
@@ -68,20 +70,20 @@ export default class extends EventEmitter {
     /**
      * Register all multiplayer Events
      */
-    registerMultiplayerEvents(multiplayerService) {
+    registerMultiplayerMessages(multiplayerService) {
         multiplayerService.on("peer-connect",    this.peerConnect.bind(this));
         multiplayerService.on("peer-disconnect", this.peerDisconnect.bind(this));
 
         multiplayerService.on("player-state", (message)=>{
-            this.emit("remote-player-state", message);
+            this.emit("player-state", message);
         });
 
         multiplayerService.on("job-select", (message)=>{
-            this.emit("remote-player-job-select", message);
+            this.emit("player-job", message);
         });
 
         multiplayerService.on("option-select", (message)=>{
-            this.emit("remote-option-select", message);
+            this.emit("option-select", message);
         });
     }
 
@@ -94,22 +96,24 @@ export default class extends EventEmitter {
             this.leaveGame()
         });
 
-        view.on("job-select", (job)=>{
-            this._multiplayerController.jobSelect(job);
-            this.emit("local-player-job-select", job);
+        view.on("job-select", (message)=>{
+            Logger.log(message);
+            this._networkService.jobSelect(message.job);
+            this.emit("player-job", message);
         });
 
-        view.on("ready", (ready)=>{
-            let state = ready ? "ready" : "idle";
-            this._multiplayerController.playerState(state);
-            this.emit("local-player-state", {
+        view.on("ready", (message)=>{
+            let state = message.state ? "ready" : "idle";
+            this._networkService.playerState(state);
+            this.emit("player-state", {
+               "id": message.id,
                 "state": state
             });
         });
 
-        view.on("option-select", (option)=>{
-            this._multiplayerController.optionSelect(option);
-            this.emit("local-option-select", option);
+        view.on("option-select", (message)=>{
+            this._networkService.optionSelect(message.option);
+            this.emit("option-select", message);
         });
     }
 }

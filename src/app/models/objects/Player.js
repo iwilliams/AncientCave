@@ -49,7 +49,7 @@ class Player extends BaseModel {
         return [...JOBS.values()];
     }
 
-    constructor(name, id) {
+    constructor(name, id, job) {
         super();
         this._name = name;
         this._id = id;
@@ -63,6 +63,8 @@ class Player extends BaseModel {
         this.currentState = "idle";
 
         this.currentAction = "thinking";
+
+        if(job) this.job = job;
     }
 
     set job(jobName) {
@@ -84,7 +86,6 @@ class Player extends BaseModel {
 
     set currentState(state) {
         if(this._states.has(state)) {
-            Logger.debug("SET STATE TO STATE");
             this._currentState = state;
         }
     }
@@ -99,6 +100,8 @@ class Player extends BaseModel {
 
     get id() {return this._id;}
 
+    get readyToAttack() {return this._readyToAttack;}
+
     init() {
         return new Promise((res, rej)=>{
             res();
@@ -109,34 +112,32 @@ class Player extends BaseModel {
         this.currentState  = "idle";
         this.currentAction = "action";
         this.cooldown      = 0;
+        this._readyToAttack = false;
     }
 
-    chargeCooldown() {
-        return new Promise((res, rej)=>{
-            this._cooldownInterval = setInterval(()=>{
-                this.cooldown++;
-                if(this.cooldown == this.maxCooldown) {
-                    clearInterval(this._cooldownInterval);
-                    if(this._attack) {
-                        this._attack();
-                        this.waitingToAttack = false;
-                    }
-                    res();
-                }
-            }, 60);
-        });
+    endCombat() {
+        this.currentState   = "idle";
+        this.currentAction  = "thinking";
+        this.cooldown       = this.maxCooldown;
+        this._readyToAttack = false;
+        if(this._cooldownInterval) clearInterval(this._cooldownInterval);
     }
 
-    attack() {
-        this.waitingToAttack = true;
-        return new Promise((res, rej)=>{
-            if(this.cooldown == this.maxCooldown) {
-                this.waitingToAttack = false;
-                res();
-            } else {
-                this._attack = res;
+    chargeCooldown(callback) {
+        this._currentAction = "thinking";
+        this._readyToAttack = false;
+        this.cooldown = 0;
+
+        if(this._cooldownInterval) clearInterval(this._cooldownInterval);
+
+        this._cooldownInterval = setInterval(()=>{
+            this.cooldown++;
+            if(this.cooldown >= this.maxCooldown) {
+                clearInterval(this._cooldownInterval);
+                this._readyToAttack = true;
+                callback(this);
             }
-        });
+        }, 60);
     }
 }
 
