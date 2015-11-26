@@ -1,6 +1,6 @@
-import Logger       from '../services/Logger';
-import EventEmitter from '../mixins/EventEmitter';
-import MultiplayerController from '../controllers/MultiplayerController';
+import Logger         from '../services/Logger';
+import EventEmitter   from '../mixins/EventEmitter';
+import NetworkService from '../services/NetworkService';
 
 export default class extends EventEmitter {
     constructor() {
@@ -21,12 +21,12 @@ export default class extends EventEmitter {
             args = [message.name];
         }
         // Init mp controller
-        this._multiplayerController = new MultiplayerController(...args);
-        this._multiplayerController.init().then(()=>{
-            this.registerMultiplayerEvents(this._multiplayerController);
+        this._networkService = new NetworkService(...args);
+        this._networkService.init().then(()=>{
+            this.registerMultiplayerMessages(this._networkService);
             Logger.debug("Dispatcher: Broadcast Add Player Message");
             this.emit("add-local-player", {
-                "id": this._multiplayerController.id,
+                "id": this._networkService.id,
                 "name": message.name
             });
             this.emit("game-state", "lobby");
@@ -34,7 +34,7 @@ export default class extends EventEmitter {
     }
 
     leaveGame() {
-        this._multiplayerController.disconnect();
+        this._networkService.disconnect();
         this.emit("game-state", "main menu");
     }
 
@@ -68,7 +68,7 @@ export default class extends EventEmitter {
     /**
      * Register all multiplayer Events
      */
-    registerMultiplayerEvents(multiplayerService) {
+    registerMultiplayerMessages(multiplayerService) {
         multiplayerService.on("peer-connect",    this.peerConnect.bind(this));
         multiplayerService.on("peer-disconnect", this.peerDisconnect.bind(this));
 
@@ -95,20 +95,20 @@ export default class extends EventEmitter {
         });
 
         view.on("job-select", (job)=>{
-            this._multiplayerController.jobSelect(job);
+            this._networkService.jobSelect(job);
             this.emit("local-player-job-select", job);
         });
 
         view.on("ready", (ready)=>{
             let state = ready ? "ready" : "idle";
-            this._multiplayerController.playerState(state);
+            this._networkService.playerState(state);
             this.emit("local-player-state", {
                 "state": state
             });
         });
 
         view.on("option-select", (option)=>{
-            this._multiplayerController.optionSelect(option);
+            this._networkService.optionSelect(option);
             this.emit("local-option-select", option);
         });
     }

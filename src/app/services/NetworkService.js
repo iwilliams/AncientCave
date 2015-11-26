@@ -1,7 +1,6 @@
 import Config       from '../../Config';
 import EventEmitter from '../mixins/EventEmitter';
-import Logger       from '../Services/Logger';
-
+import Logger       from './Logger';
 
 export default class extends EventEmitter {
     constructor(name, host) {
