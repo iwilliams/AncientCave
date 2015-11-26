@@ -5,7 +5,7 @@ let config = {};
  */
 config.API_KEY = "xahxx0yuy5le4s4i";
 
-config.DISABLE_AUDIO = true;
+//config.DISABLE_AUDIO = true;
 
 // 16x9 Aspect Ratio
 config.ASPECT_WIDTH  = 1920;
