@@ -18,18 +18,23 @@ config.calculate = function() {
     // Horizontal or Vertical percentage that the game view should occupy
     config.PERCENTAGE = 1;
 
+    config.SPRITE_SIZE   = 24;
+
     // Caclulate canvas width and height according to above percentage and aspect ratio
-    config.CANVAS_WIDTH  = window.outerWidth*config.PERCENTAGE;
-    config.CANVAS_HEIGHT = (config.CANVAS_WIDTH*config.ASPECT_HEIGHT)/config.ASPECT_WIDTH;
+    let screenWidth = window.outerWidth;
+    do {
+        config.CANVAS_WIDTH  = (screenWidth--*config.PERCENTAGE);
+        config.CANVAS_HEIGHT = (config.CANVAS_WIDTH*config.ASPECT_HEIGHT)/config.ASPECT_WIDTH;
+    } while(config.CANVAS_HEIGHT%config.SPRITE_SIZE !== 0)
+
 
     // Make sure the window will fit vertically
-    if(config.CANVAS_HEIGHT > window.innerHeight) {
-        config.CANVAS_HEIGHT  = window.outerHeight*config.PERCENTAGE;
-        config.CANVAS_WIDTH = (config.CANVAS_HEIGHT*config.ASPECT_WIDTH)/config.ASPECT_HEIGHT;
-    }
+    //if(config.CANVAS_HEIGHT > window.innerHeight) {
+        //config.CANVAS_HEIGHT  = window.outerHeight*config.PERCENTAGE;
+        //config.CANVAS_WIDTH = (config.CANVAS_HEIGHT*config.ASPECT_WIDTH)/config.ASPECT_HEIGHT;
+    //}
 
     // Determine Sprite Scaling
-    config.SPRITE_SIZE   = 24;
     config.SPRITE_SCALE  = config.CANVAS_WIDTH/(config.TILE_X*config.SPRITE_SIZE);
     config.TILE_SIZE     = config.SPRITE_SIZE*config.SPRITE_SCALE;
 

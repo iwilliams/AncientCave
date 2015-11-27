@@ -44,8 +44,9 @@ export default class extends ObjectView {
     }
 
     render(ctx, frame) {
-        this.frame      = (frame < Config.FPS%2) ? 0 : 1;
-        this.frame = frame%2;
+        if(frame%4 == 0) {
+            this.frame = this.frame ? 0 : 1;
+        }
 
         // Render Floor
         let floor = this._resources.get('floor');

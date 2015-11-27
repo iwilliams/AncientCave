@@ -7,6 +7,10 @@ export default class {
         console.trace(`%c${msg}`, 'font-size: 15px; background: #222; color: #bada55;');
     }
 
+    static network(msg) {
+        console.trace(`%c${msg}`, 'font-size: 15px; background: #FDF485; color: #000;');
+    }
+
     static log(msg) {
         console.trace(msg);
     }

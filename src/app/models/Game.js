@@ -18,8 +18,17 @@ import Ui        from './objects/Ui';
 
 export default class extends BaseModel {
 
+    get currentState() {return this._currentState;}
+    get mainMenu() {return this._mainMenu;}
+    get lobby() {return this._lobby;}
+    get players() {return this._players;}
+    get localPlayer() {return this._localPlayer;}
+    get room() {return this._room;}
+    get ui() {return this._ui;}
+
     constructor() {
         super();
+
         this._states = new Set([
             "main menu",
             "lobby",
@@ -75,7 +84,6 @@ export default class extends BaseModel {
             for(let player of this.players.values()) {
                 readyToStart = readyToStart && player.currentState === "ready";
             }
-            Logger.debug("Players are ready? " + readyToStart);
 
             if(readyToStart) {
                 Logger.banner("STARTING GAME");
@@ -84,7 +92,7 @@ export default class extends BaseModel {
         }
     }
 
-    checkPlayerAction(p, message) {
+    checkPlayerAction(p) {
         if(this.currentState === "playing") {
             if(this._room.currentState == "idle") {
                 let readyToMove = true;
@@ -96,50 +104,12 @@ export default class extends BaseModel {
                     this._lookForTrouble();
                 }
             } else if (this._room.currentState == "battle") {
-                if(message === "attack") {
+                if(p.currentAction === "attack" && p.readyToAttack) {
                     this._playerAttack(p);
                 }
             }
         }
     }
-
-
-
-
-    /**
-     * Return current state
-     */
-    get currentState() {return this._currentState;}
-
-    /**
-     * Return main menu
-     */
-    get mainMenu() {return this._mainMenu;}
-
-    /**
-     * Return lobby
-     */
-    get lobby() {return this._lobby;}
-
-    /**
-     * Return players
-     */
-    get players() {return this._players;}
-
-    /**
-     * Return the local player
-     */
-    get localPlayer() {return this._localPlayer;}
-
-    /**
-     * Return Current Room
-     */
-    get room() {return this._room;}
-
-    /**
-     * Return Ui Room
-     */
-    get ui() {return this._ui;}
 
     _startMenu() {
         this.currentState = "main menu";
@@ -189,18 +159,16 @@ export default class extends BaseModel {
     }
 
     _playerCooldownReady(player) {
-        this.emit("player-cooldown", player);
         if(player.currentAction === "attack") {
             this._playerAttack(player);
         }
+        this.emit("player-cooldown", player);
     }
 
     _playerAttack(p) {
-        if(p.readyToAttack) {
-            this._combatPhase();
-            p.chargeCooldown(this._playerCooldownReady.bind(this));
-            this.emit("player-attack", p);
-        }
+        this.emit("player-attack", p);
+        this._combatPhase();
+        p.chargeCooldown(this._playerCooldownReady.bind(this));
     }
 
     _combatPhase() {
@@ -238,21 +206,12 @@ export default class extends BaseModel {
         });
 
         dispatcher.on("add-player", (message)=>{
-            Logger.debug("Game: Add Player message recieved");
-            Logger.log(message);
-
             let p = new Player(message.name, message.id, message.job);
-
-            p.init().then(()=>{
-                this.addPlayer(p, message.isLocal);
-            });
+            this.addPlayer(p, message.isLocal);
         });
 
         // Remove the peers player from the game
         dispatcher.on("remove-player", (message)=>{
-            Logger.debug("Game: Remove Player message recieved");
-            Logger.log(message);
-
             // Get and then delete player
             let playerToRemove = this._players.get(message.id);
             let playerRemoved = this._players.delete(playerToRemove.id);
@@ -277,9 +236,6 @@ export default class extends BaseModel {
 
         // Alter player's state
         dispatcher.on("player-state", (message)=>{
-            Logger.debug("Game: Remote Player State message recieved");
-            Logger.log(message);
-
             let player = this._players.get(message.id);
             player.currentState = message.state;
 
@@ -292,7 +248,7 @@ export default class extends BaseModel {
         dispatcher.on("option-select", (message)=>{
             let player = this._players.get(message.id);
             player.currentAction = message.option;
-            this.checkPlayerAction(player, message.option);
+            this.checkPlayerAction(player);
         });
     }
 
@@ -300,8 +256,6 @@ export default class extends BaseModel {
      * Adds a player regardless of remote or local
      */
     addPlayer(p, isLocal) {
-        Logger.debug("Game: Adding Player");
-        Logger.log(p);
         let players = this._players.values();
         let yPos = .8;
         for(let player of players) {

@@ -34,7 +34,7 @@ export default class extends EventEmitter {
 
         return new Promise((res, rej)=>{
             this._peer.on('open', (id)=>{
-                Logger.debug(`Peer Connection created, Peer ID is ${id}`);
+                Logger.network(`Peer Connection created, Peer ID is ${id}`);
                 this._id = id;
 
                 // If we know about a peer then connect
@@ -49,7 +49,7 @@ export default class extends EventEmitter {
                     }
 
                     connection.on('open', ()=>{
-                        Logger.debug("Peer has connected");
+                        Logger.network("Peer has connected");
                         Logger.log(connection);
                         let peer = this.addPeer(connection);
                         this.connectToPeer(peer);
@@ -92,14 +92,13 @@ export default class extends EventEmitter {
         }
         message.data.peers = peers;
 
-        Logger.debug(`Sending peer-connect message to peer with id ${peer}`);
+        Logger.network(`Sending peer-connect message to peer with id ${peer.id}`);
         Logger.log(message);
         peer.connection.send(message);
         peer.hasConnected = true;
     }
 
     removePeer(peer) {
-        Logger.debug("Remove peer");
         this.emit("peer-disconnect", peer.connection.peer);
         this._peers.delete(peer.connection.peer);
     }
@@ -112,6 +111,9 @@ export default class extends EventEmitter {
      * Send message to all peers
      */
     _sendMessage(message) {
+        Logger.network("Send message to peers");
+        message.from = this._id;
+        Logger.log(message);
         if(this._peers) {
             for(let peer of this._peers.values()) {
                 peer.connection.send(message);
@@ -154,7 +156,7 @@ export default class extends EventEmitter {
     }
 
     handleData(message) {
-        Logger.debug(`Message recieved from peer with id ${message.from}`);
+        Logger.network(`Message recieved from peer with id ${message.from}`);
         Logger.log(message);
 
         // Grab data from message
@@ -164,7 +166,7 @@ export default class extends EventEmitter {
             // See if this peer knows about any other peers and add if we don't know them
             for(let peer of data.peers) {
                 if(!this._peers.get(peer) && peer !== this._id) {
-                    Logger.debug(`Adding Peer with id ${peer}`);
+                    Logger.network(`Adding Peer with id ${peer}`);
                     this.addPeer(this._peer.connect(peer));
                 }
             }

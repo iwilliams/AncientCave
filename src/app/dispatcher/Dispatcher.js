@@ -112,8 +112,9 @@ export default class extends EventEmitter {
         });
 
         view.on("option-select", (message)=>{
-            this._networkService.optionSelect(message.option);
             this.emit("option-select", message);
+            // This seems to have to go second for some reason
+            this._networkService.optionSelect(message.option);
         });
     }
 }

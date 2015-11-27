@@ -53,6 +53,21 @@ JOBS.set("ninja", {
 
 class Player extends BaseModel {
 
+    get job() {
+        return this._job;
+    }
+    set currentState(state) {
+        if(this._states.has(state)) {
+            this._currentState = state;
+        }
+    }
+    set currentAction(action) {this._currentAction = action;}
+    get currentState() {return this._currentState;}
+    get currentAction() {return this._currentAction;}
+    get name() {return this._name;}
+    get id() {return this._id;}
+    get readyToAttack() {return this._readyToAttack;}
+
     static getJobs() {
         return [...JOBS.values()];
     }
@@ -65,8 +80,8 @@ class Player extends BaseModel {
         this._states = new Set([
             "idle",
             "ready",
+            "resting",
             "walking",
-            "attacking"
         ]);
         this.currentState = "idle";
 
@@ -86,34 +101,6 @@ class Player extends BaseModel {
 
         this.maxCooldown = this._job.cooldown;
         this.cooldown = this._job.cooldown;
-    }
-
-    get job() {
-        return this._job;
-    }
-
-    set currentState(state) {
-        if(this._states.has(state)) {
-            this._currentState = state;
-        }
-    }
-
-    set currentAction(action) {this._currentAction = action;}
-
-    get currentState() {return this._currentState;}
-
-    get currentAction() {return this._currentAction;}
-
-    get name() {return this._name;}
-
-    get id() {return this._id;}
-
-    get readyToAttack() {return this._readyToAttack;}
-
-    init() {
-        return new Promise((res, rej)=>{
-            res();
-        });
     }
 
     beginCombat() {

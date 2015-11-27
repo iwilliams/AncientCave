@@ -1,3 +1,4 @@
+import Config from '../Config';
 // Import Game
 import Game from './models/Game';
 

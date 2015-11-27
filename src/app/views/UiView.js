@@ -237,6 +237,7 @@ export default class extends ObjectView {
     }
 
     clearLastOption() {
-        this._lastOption = undefined;
+        console.log("clear last option");
+        this._lastOption = "";
     }
 }
