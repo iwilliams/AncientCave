@@ -15,8 +15,6 @@ let JOB_SPRITES = {
 export default class extends ObjectView {
     constructor(player) {
         super(player);
-        console.log("VIEW");
-        console.log(player);
         this._player = player;
 
         this._images = [
