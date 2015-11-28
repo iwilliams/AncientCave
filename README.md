@@ -15,8 +15,8 @@ https://github.com/iwilliams/AncientCave
 Developing a JS clone of a FFV mod called Ancient Cave
 
     @todo:
-        - Begin Combat Logic         ~ IN PROGRESS
-        - Refactor base engine code  ~ TODO
+        [ ] Clean up network logic
+        [ ] Clean up model state logic
 
     Twitter: @ianawill
     Twtich:  ianawill
