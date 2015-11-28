@@ -175,7 +175,6 @@ export default class extends EventEmitter {
 
                 let uiView = new UiView(game.ui, game.players, this);
                 this._uiView = uiView;
-                //uiView.requestInput().then(this.handleUiInput.bind(this));
                 promises.push(uiView.loadResources());
 
                 // Load sounds
@@ -191,7 +190,9 @@ export default class extends EventEmitter {
                         this._uiView
                     ];
                     this._soundService.play("dungeon-theme", true);
-                    this.emit("render-ready");
+                    //this.postMessage({
+                        //"event": "render-ready"
+                    //});
                 });
             }
         });
@@ -240,9 +241,6 @@ export default class extends EventEmitter {
         });
 
         game.on("player-attack", (player)=>{
-            if(player == this._game.localPlayer) {
-                this._uiView.clearLastOption();
-            }
         });
 
         game.on("end-battle", ()=>{
@@ -254,10 +252,6 @@ export default class extends EventEmitter {
                 this._uiView
             ];
         });
-    }
-
-    handleUiInput(input) {
-        this.emit("option-select", input);
     }
 
     /**

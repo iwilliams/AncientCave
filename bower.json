@@ -22,6 +22,7 @@
     "peerjs": "~0.3.14"
   },
   "devDependencies": {
-    "howler.js": "~1.1.28"
+    "howler.js": "~1.1.28",
+    "immutable": "~3.7.5"
   }
 }

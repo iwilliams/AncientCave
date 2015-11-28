@@ -51,6 +51,9 @@ JOBS.set("ninja", {
     'position': 'front'
 });
 
+class PlayerAction {
+}
+
 class Player extends BaseModel {
 
     get job() {
@@ -61,7 +64,9 @@ class Player extends BaseModel {
             this._currentState = state;
         }
     }
+
     set currentAction(action) {this._currentAction = action;}
+
     get currentState() {return this._currentState;}
     get currentAction() {return this._currentAction;}
     get name() {return this._name;}
@@ -85,7 +90,11 @@ class Player extends BaseModel {
         ]);
         this.currentState = "idle";
 
-        this.currentAction = "thinking";
+        this.currentAction = Immutable.Map({
+            "action": "thinking"
+        });
+
+        this.nextAction = undefined;
 
         if(job) this.job = job;
     }
@@ -105,21 +114,27 @@ class Player extends BaseModel {
 
     beginCombat() {
         this.currentState  = "idle";
-        this.currentAction = "action";
+        this.currentAction = Immutable.Map({
+            "action": "thinking"
+        });
         this.cooldown      = 0;
         this._readyToAttack = false;
     }
 
     endCombat() {
         this.currentState   = "idle";
-        this.currentAction  = "thinking";
-        this.cooldown       = this.maxCooldown;
+        this.currentAction  = Immutable.Map({
+            "action": "thinking"
+        });
+        this.cooldown = 0;
         this._readyToAttack = false;
         if(this._cooldownInterval) clearInterval(this._cooldownInterval);
     }
 
     chargeCooldown(callback) {
-        this._currentAction = "thinking";
+        this._currentAction = Immutable.Map({
+            "action": "thinking"
+        });
         this._readyToAttack = false;
         this.cooldown = 0;
 

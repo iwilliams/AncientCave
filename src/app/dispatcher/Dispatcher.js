@@ -9,7 +9,7 @@ export default class extends EventEmitter {
 
     init(view) {
         this._view = view;
-        this.registerViewMessages(this._view);
+        this._view.onmessage = this.handleViewMessages.bind(this);
     }
 
     initMultiplayerGame(message) {
@@ -23,20 +23,35 @@ export default class extends EventEmitter {
         // Init mp controller
         this._networkService = new NetworkService(...args);
         this._networkService.init().then(()=>{
-            this.registerMultiplayerMessages(this._networkService);
+
+            this._networkService.onmessage = message => {
+                this.postMessage(message);
+            }
+
             Logger.debug("Dispatcher: Broadcast Add Player Message");
-            this.emit("add-player", {
-                "id": Symbol(),
-                "name": message.name,
-                "isLocal": true
+
+            this.postMessage({
+                "event": "add-player",
+                "from": Symbol(),
+                "data": {
+                    "name": message.name,
+                    "isLocal": true
+                }
             });
-            this.emit("game-state", "lobby");
+
+            this.postMessage({
+                "event": "game-state",
+                "data": "lobby"
+            });
         });
     }
 
     leaveGame() {
         this._networkService.disconnect();
-        this.emit("game-state", "main menu");
+        this.postMessage({
+            "event": "game-state",
+            "data": "main menu"
+        });
     }
 
     /**
@@ -47,10 +62,13 @@ export default class extends EventEmitter {
         Logger.log(message);
 
         Logger.debug("Dispatcher: Broadcast Add Player Message");
-        this.emit("add-player", {
-            "id": message.from,
-            "name": message.data.name,
-            "job": message.data.job
+        this.postMessage({
+            "event": "add-player",
+            "data": {
+                "id": message.from,
+                "name": message.data.name,
+                "job": message.data.job
+            }
         });
     }
 
@@ -62,59 +80,50 @@ export default class extends EventEmitter {
         Logger.log(message);
 
         Logger.debug("Dispatcher: Broadcast Remove Player Message");
-        this.emit("remove-player", {
-            "id": message
+        this.postMessage({
+           "event": "remove-player",
+            "data": {
+                "id": message
+            }
         });
     }
 
     /**
      * Register all multiplayer Events
      */
-    registerMultiplayerMessages(multiplayerService) {
-        multiplayerService.on("peer-connect",    this.peerConnect.bind(this));
-        multiplayerService.on("peer-disconnect", this.peerDisconnect.bind(this));
-
-        multiplayerService.on("player-state", (message)=>{
-            this.emit("player-state", message);
-        });
-
-        multiplayerService.on("job-select", (message)=>{
-            this.emit("player-job", message);
-        });
-
-        multiplayerService.on("option-select", (message)=>{
-            this.emit("option-select", message);
-        });
+    handleMultiplayerMessages(message) {
+        this.postMessage(message);
     }
 
     /**
      * Register all view messages
      */
-    registerViewMessages(view) {
-        view.on("start-mp", this.initMultiplayerGame.bind(this));
-        view.on("leave-game", ()=>{
+    handleViewMessages(message) {
+        let event = message.event;
+        let data  = message.data;
+
+        if(event === "start-mp") {
+            this.initMultiplayerGame(data);
+        } else if (event === "leave-game") {
             this.leaveGame()
-        });
-
-        view.on("job-select", (message)=>{
-            Logger.log(message);
-            this._networkService.jobSelect(message.job);
-            this.emit("player-job", message);
-        });
-
-        view.on("ready", (message)=>{
-            let state = message.state ? "ready" : "idle";
+        }else if (event === "ready") { // CHANGE THIS TO PLAYER STATE
+            let state = data.state ? "ready" : "idle";
             this._networkService.playerState(state);
-            this.emit("player-state", {
-               "id": message.id,
-                "state": state
+            this.postMessage({
+               "event": "player-state",
+                "data": {
+                   "id": data.id,
+                   "state": state
+                }
             });
-        });
-
-        view.on("option-select", (message)=>{
-            this.emit("option-select", message);
+        } else {
+            this.postMessage(message);
             // This seems to have to go second for some reason
-            this._networkService.optionSelect(message.option);
-        });
+
+            if(message.data && message.data.toJSON)
+                message.data = data.toJSON();
+
+            this._networkService.broadcastMessage(message);
+        }
     }
 }

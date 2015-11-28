@@ -98,9 +98,12 @@ export default class extends ObjectView {
             },
             confirm: function() {
                 if(nameInput.value.trim()) {
-                    view.emit("start-mp", {
-                        name: nameInput.value,
-                        id: idInput.value
+                    view.postMessage({
+                        "event": "start-mp",
+                        "data": {
+                            name: nameInput.value,
+                            id: idInput.value
+                        }
                     });
                     this.remove();
                 }
@@ -149,10 +152,13 @@ export default class extends ObjectView {
             },
             confirm: function() {
                 if(nameInput.value.trim() && hostInput.value.trim()) {
-                    view.emit("start-mp", {
-                        name: nameInput.value,
-                        hostId: hostInput.value,
-                        id: idInput.value
+                    view.postMessage({
+                        "event": "start-mp",
+                        "data": {
+                            name: nameInput.value,
+                            hostId: hostInput.value,
+                            id: idInput.value
+                        }
                     });
                     this.remove();
                 }

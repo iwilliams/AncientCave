@@ -81,4 +81,8 @@ export default class {
         this._maxListeners = newMaxListeners
     }
 
+    postMessage(message) {
+        if(this.onmessage)
+            this.onmessage(message);
+    }
 }
