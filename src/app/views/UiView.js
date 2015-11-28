@@ -227,17 +227,20 @@ export default class extends ObjectView {
 
     confirm() {
         let currentOption = this._ui.currentOptions[this._selectedOptionIndex];
-        if(currentOption !== this._lastOption) {
-            this._view.emit("option-select", {
-                "id": this._view._game.localPlayer.id,
-                "option": this._ui.currentOptions[this._selectedOptionIndex]
-            });
-            this._lastOption = currentOption;
-        }
-    }
 
-    clearLastOption() {
-        console.log("clear last option");
-        this._lastOption = "";
+        let action = Immutable.Map({
+            "action": this._ui.currentOptions[this._selectedOptionIndex],
+            "target": 0
+        });
+
+        if(!Immutable.is(action, this._view._game.localPlayer.currentAction)) {
+            let message = {
+                "event": "player-action",
+                "from": this._view._game.localPlayer.id,
+                "data": action
+            }
+
+            this._view.postMessage(message);
+        }
     }
 }

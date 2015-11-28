@@ -16,7 +16,8 @@ var includes = {
     keypress: bowerDir('Keypress/'),
     peerjs:   bowerDir('peerjs/'),
     rngjs:   bowerDir('rng-js/'),
-    howlerjs: bowerDir('howler.js/')
+    howlerjs: bowerDir('howler.js/'),
+    immutable: bowerDir('immutable/dist/')
 }
 
 // Compile es6 code
@@ -39,7 +40,8 @@ gulp.task('vendor-scripts', function() {
         includes.keypress   + 'keypress-2.1.3.min.js',
         includes.peerjs     + 'peer.min.js',
         includes.rngjs      + 'rng.js',
-        includes.howlerjs   + 'howler.js'
+        includes.howlerjs   + 'howler.js',
+        includes.immutable  + 'immutable.min.js'
     ])
     .pipe(concat('vendor.js'))
     .pipe(uglify())

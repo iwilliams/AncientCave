@@ -86,7 +86,7 @@ export default class extends ObjectView {
 
         // Draw Bubble
         let bubbleOffset = 0;
-        switch(this._player.currentAction) {
+        switch(this._player.currentAction.get("action")) {
             case "thinking":
                 bubbleOffset = 0;
                 break;
@@ -104,7 +104,7 @@ export default class extends ObjectView {
                 break;
         }
 
-        if(this._player.currentAction !== "walk" && this._player.currentAction !== "ready") {
+        if(this._player.currentAction !== "walk" && this._player.currentAction.get("action") !== "ready") {
             ctx.drawImage(...[
                 this._resources.get('bubble'),
                 0,

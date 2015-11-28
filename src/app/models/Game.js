@@ -53,6 +53,7 @@ export default class extends BaseModel {
 
             // LISTEN FOR EVENTS
             this.listenToDispatcher(this._dispatcher);
+            this._dispatcher.onmessage = this.handleMessage.bind(this);
 
             res();
         });
@@ -97,14 +98,14 @@ export default class extends BaseModel {
             if(this._room.currentState == "idle") {
                 let readyToMove = true;
                 for(let player of this.players.values()) {
-                    readyToMove = readyToMove && player.currentAction === "ready";
+                    readyToMove = readyToMove && player.currentAction.get("action") === "ready";
                 }
 
                 if(readyToMove) {
                     this._lookForTrouble();
                 }
             } else if (this._room.currentState == "battle") {
-                if(p.currentAction === "attack" && p.readyToAttack) {
+                if(p.currentAction.get("action") === "attack" && p.readyToAttack) {
                     this._playerAttack(p);
                 }
             }
@@ -159,7 +160,7 @@ export default class extends BaseModel {
     }
 
     _playerCooldownReady(player) {
-        if(player.currentAction === "attack") {
+        if(player.currentAction.get("action") === "attack") {
             this._playerAttack(player);
         }
         this.emit("player-cooldown", player);
@@ -193,28 +194,23 @@ export default class extends BaseModel {
         }
     }
 
-    /**
-     * Listen to events from the dispatcher and respond acordingly
-     */
-    listenToDispatcher(dispatcher) {
-        dispatcher.on("start-game", this._startMenu.bind(this));
-        dispatcher.on("start-mp",   this._startMultiplayer.bind(this));
+    handleMessage(message) {
+        Logger.debug("Message recieved from dispatcher");
+        Logger.log(message);
 
-        // Listen to game state events
-        dispatcher.on("game-state", (message)=>{
-            this.currentState = message;
-        });
+        let eventName = message.event;
+        let data = message.data;
 
-        dispatcher.on("add-player", (message)=>{
-            let p = new Player(message.name, message.id, message.job);
-            this.addPlayer(p, message.isLocal);
-        });
-
-        // Remove the peers player from the game
-        dispatcher.on("remove-player", (message)=>{
+        if(message.event == "game-state") {
+            this.currentState = data;
+        } else if(message.event == "add-player") {
+            let p = new Player(data.name, message.from, data.job);
+            this.addPlayer(p, data.isLocal);
+        } else if(message.event == "remove-player") {
+            // Remove the peers player from the game
             // Get and then delete player
             let playerToRemove = this._players.get(message.id);
-            let playerRemoved = this._players.delete(playerToRemove.id);
+            let playerRemoved  = this._players.delete(playerToRemove.id);
 
             // Make sure the player was there
             if(playerRemoved) {
@@ -226,30 +222,43 @@ export default class extends BaseModel {
                     }
                 }
             }
-        });
-
-        // Alter player's job
-        dispatcher.on("player-job", (message)=>{
-            let player = this._players.get(message.id);
-            player.job = message.job;
-        });
-
-        // Alter player's state
-        dispatcher.on("player-state", (message)=>{
-            let player = this._players.get(message.id);
-            player.currentState = message.state;
+        } else if(message.event == "player-job") {
+            Logger.banner("player-job");
+            // Alter player's job
+            let player = this._players.get(message.from);
+            player.job = data.job;
+        } else if(message.event == "player-state") {
+            // Alter player's state
+            let player = this._players.get(data.id);
+            player.currentState = data.state;
 
             // Progress Game logic accoridng to player state
             this.checkPlayerState();
-        });
+        } else if(message.event == "player-action") {
+            let player = this._players.get(message.from);
 
-        // Listen for remote option select
-        // CHANGE TO PLAYER-ACTION
-        dispatcher.on("option-select", (message)=>{
-            let player = this._players.get(message.id);
-            player.currentAction = message.option;
+            let action = Immutable.Map(data);
+
+            if(action !== player.currentAction) {
+                Logger.debug("Change player action");
+                player.currentAction = action;
+                this.checkPlayerAction(player);
+            }
+        } else if(message.event == "option-select") {
+            // Listen for remote option select
+            // CHANGE TO PLAYER-ACTION
+            let player = this._players.get(message.from);
+            player.currentAction = data.option;
             this.checkPlayerAction(player);
-        });
+        }
+    }
+
+    /**
+     * Listen to events from the dispatcher and respond acordingly
+     */
+    listenToDispatcher(dispatcher) {
+        dispatcher.on("start-game", this._startMenu.bind(this));
+        dispatcher.on("start-mp",   this._startMultiplayer.bind(this));
     }
 
     /**

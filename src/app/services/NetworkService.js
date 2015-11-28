@@ -2,7 +2,31 @@ import Config       from '../../Config';
 import EventEmitter from '../mixins/EventEmitter';
 import Logger       from './Logger';
 
+let events = [
+    "peer-connect",
+    "player-job",
+    "player-state",
+    "player-action",
+    "option-select",
+];
+
+
 export default class extends EventEmitter {
+
+    createMessage(eventName, data) {
+        if(events.indexOf(eventName) >= 0) {
+            return [events.indexOf(eventName), data];
+        }
+    }
+
+    decodeMessage(id, message) {
+        return {
+            "from": id,
+            "event": events[message[0]],
+            "data": message[1]
+        }
+    }
+
     constructor(name, host) {
         super();
         this._name = name;
@@ -67,7 +91,10 @@ export default class extends EventEmitter {
         };
         this._peers.set(connection.peer, peer);
 
-        connection.on('data',  this.handleData.bind(this));
+        connection.on('data', (data)=>{
+            let message = this.decodeMessage(connection.peer, data);
+            this.handleMessage(message);
+        });
 
         connection.on('close', ()=>{
             this.removePeer(peer);
@@ -77,20 +104,21 @@ export default class extends EventEmitter {
     }
 
     connectToPeer(peer) {
-        let message = {
-            "event": "peer-connect",
-            "from": this._id,
-            "data": {
-                "name": this._name,
-                "job": this._selectedJob || undefined
-            }
+
+        let data = {
+            "name": this._name,
+            "job": this._selectedJob || undefined
         }
 
+        // Build list of peers
         let peers = [];
         for(let peer of this._peers.keys()) {
             peers.push(peer);
         }
-        message.data.peers = peers;
+        data.peers = peers;
+
+        // Create a message
+        let message = this.createMessage("peer-connect", data);
 
         Logger.network(`Sending peer-connect message to peer with id ${peer.id}`);
         Logger.log(message);
@@ -112,7 +140,6 @@ export default class extends EventEmitter {
      */
     _sendMessage(message) {
         Logger.network("Send message to peers");
-        message.from = this._id;
         Logger.log(message);
         if(this._peers) {
             for(let peer of this._peers.values()) {
@@ -122,47 +149,32 @@ export default class extends EventEmitter {
     }
 
     playerState(state) {
-        let message = {
-            "event": "player-state",
-            "data": {
+        let message = this.createMessage("player-state", {
                 "id": this._id,
                 "state": state
-            }
-        };
+        });
+
         this._sendMessage(message);
     }
 
-    jobSelect(job) {
-        let message = {
-            "event": "job-select",
-            "data": {
-                "id": this._id,
-                "job": job
-            }
-        };
-        this._selectedJob = job;
-        this._sendMessage(message);
-    }
-
-    optionSelect(option) {
-        let message = {
-            "event": "option-select",
-            "data": {
-                "id": this._id,
-                "option": option
-            }
+    broadcastMessage(message) {
+        if(message.event === "player-job") {
+            this._selectedJob = message.data.job;
         }
-        this._sendMessage(message);
+        this._sendMessage(this.createMessage(message.event, message.data));
     }
 
-    handleData(message) {
+    /**
+     * Handle incoming message
+     */
+    handleMessage(message) {
         Logger.network(`Message recieved from peer with id ${message.from}`);
         Logger.log(message);
 
         // Grab data from message
         let data = message.data;
 
-        if(message.event == "peer-connect") {
+        if(message.event === "peer-connect") {
             // See if this peer knows about any other peers and add if we don't know them
             for(let peer of data.peers) {
                 if(!this._peers.get(peer) && peer !== this._id) {
@@ -176,19 +188,9 @@ export default class extends EventEmitter {
                 this.connectToPeer(this._peers.get(message.from));
             }
 
-            this.emit("peer-connect", message);
+            message.event = "add-player";
         }
 
-        if(message.event == "player-state") {
-            this.emit("player-state", message.data);
-        }
-
-        if(message.event == "job-select") {
-            this.emit("job-select", message.data);
-        }
-
-        if(message.event == "option-select") {
-            this.emit("option-select", message.data);
-        }
+        this.postMessage(message);
     }
 }
