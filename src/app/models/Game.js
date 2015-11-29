@@ -161,13 +161,13 @@ export default class extends BaseModel {
     _playerAttack(p) {
         this.emit("player-attack", p);
 
-        p.walkForward(()=>{
-            this._combatPhase();
-            p.chargeCooldown(this._playerCooldownReady.bind(this));
-            p.attack(()=>{
-                p.walkBack();
-            });
-        });
+        //p.walkForward(()=>{
+        this._combatPhase();
+        p.chargeCooldown(this._playerCooldownReady.bind(this));
+            //p.attack(()=>{
+                //p.walkBack();
+            //});
+        //});
     }
 
     _combatPhase() {
