@@ -190,9 +190,6 @@ export default class extends EventEmitter {
                         this._uiView
                     ];
                     this._soundService.play("dungeon-theme", true);
-                    //this.postMessage({
-                        //"event": "render-ready"
-                    //});
                 });
             }
         });

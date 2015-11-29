@@ -106,23 +106,12 @@ export default class extends EventEmitter {
             this.initMultiplayerGame(data);
         } else if (event === "leave-game") {
             this.leaveGame()
-        }else if (event === "ready") { // CHANGE THIS TO PLAYER STATE
-            let state = data.state ? "ready" : "idle";
-            this._networkService.playerState(state);
-            this.postMessage({
-               "event": "player-state",
-                "data": {
-                   "id": data.id,
-                   "state": state
-                }
-            });
         } else {
-            this.postMessage(message);
-            // This seems to have to go second for some reason
-
+            // Convert any Immutable data to JSON
             if(message.data && message.data.toJSON)
                 message.data = data.toJSON();
 
+            this.postMessage(message);
             this._networkService.broadcastMessage(message);
         }
     }

@@ -148,10 +148,10 @@ export default class extends ObjectView {
             } else if(this.selectedOption == "Ready") {
                 this._ready = !this._ready;
                 this._view.postMessage({
-                    "event": "ready",
+                    "event": "player-state",
+                    "from": this._view._game.localPlayer.id,
                     "data": {
-                        "id": this._view._game.localPlayer.id,
-                        "state": this._ready
+                        "state": this._ready ? "ready" : "idle"
                     }
                 });
             }

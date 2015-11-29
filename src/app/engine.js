@@ -28,7 +28,7 @@ export default class {
             this._view.init(this._game),
             this._dispatcher.init(this._view)
         ]).then(()=>{
-            this._dispatcher.emit("start-game");
+            this._dispatcher.postMessage({"event": "game-start"});
         });
     }
 }
