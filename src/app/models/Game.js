@@ -52,7 +52,7 @@ export default class extends BaseModel {
             this._players = new Map();
 
             // LISTEN FOR EVENTS
-            this.listenToDispatcher(this._dispatcher);
+            //this.listenToDispatcher(this._dispatcher);
             this._dispatcher.onmessage = this.handleMessage.bind(this);
 
             res();
@@ -95,7 +95,7 @@ export default class extends BaseModel {
 
     checkPlayerAction(p) {
         if(this.currentState === "playing") {
-            if(this._room.currentState == "idle") {
+            if(this._room.currentState === "idle") {
                 let readyToMove = true;
                 for(let player of this.players.values()) {
                     readyToMove = readyToMove && player.currentAction.get("action") === "ready";
@@ -104,20 +104,12 @@ export default class extends BaseModel {
                 if(readyToMove) {
                     this._lookForTrouble();
                 }
-            } else if (this._room.currentState == "battle") {
+            } else if (this._room.currentState === "battle") {
                 if(p.currentAction.get("action") === "attack" && p.readyToAttack) {
                     this._playerAttack(p);
                 }
             }
         }
-    }
-
-    _startMenu() {
-        this.currentState = "main menu";
-    }
-
-    _startMultiplayer() {
-        this.currentState = "lobby";
     }
 
     _startPlaying() {
@@ -194,14 +186,36 @@ export default class extends BaseModel {
         }
     }
 
+    /**
+     * Adds a player regardless of remote or local
+     */
+    addPlayer(p, isLocal) {
+        let players = this._players.values();
+        let yPos = .8;
+        for(let player of players) {
+            yPos = player.yPos;
+            player.currentState = "idle";
+        }
+        yPos += 1.2;
+        p.yPos = yPos;
+        this._players.set(p.id, p);
+        if(isLocal) {
+            this._localPlayer = p;
+        }
+        this.emit("add-player", p);
+    }
+
     handleMessage(message) {
         Logger.debug("Message recieved from dispatcher");
         Logger.log(message);
 
+        // Assign event name and data
         let eventName = message.event;
         let data = message.data;
 
-        if(message.event == "game-state") {
+        if(eventName == "game-start") {
+            this.currentState = "main menu";
+        } else if(message.event == "game-state") {
             this.currentState = data;
         } else if(message.event == "add-player") {
             let p = new Player(data.name, message.from, data.job);
@@ -229,7 +243,7 @@ export default class extends BaseModel {
             player.job = data.job;
         } else if(message.event == "player-state") {
             // Alter player's state
-            let player = this._players.get(data.id);
+            let player = this._players.get(message.from);
             player.currentState = data.state;
 
             // Progress Game logic accoridng to player state
@@ -239,44 +253,14 @@ export default class extends BaseModel {
 
             let action = Immutable.Map(data);
 
-            if(action !== player.currentAction) {
-                Logger.debug("Change player action");
+            // If the player already has an action then que next action
+            if(player.currentAction.get("action") === "thinking" || player === this.localPlayer) {
                 player.currentAction = action;
-                this.checkPlayerAction(player);
+            } else {
+                player.nextAction    = action;
             }
-        } else if(message.event == "option-select") {
-            // Listen for remote option select
-            // CHANGE TO PLAYER-ACTION
-            let player = this._players.get(message.from);
-            player.currentAction = data.option;
+
             this.checkPlayerAction(player);
         }
-    }
-
-    /**
-     * Listen to events from the dispatcher and respond acordingly
-     */
-    listenToDispatcher(dispatcher) {
-        dispatcher.on("start-game", this._startMenu.bind(this));
-        dispatcher.on("start-mp",   this._startMultiplayer.bind(this));
-    }
-
-    /**
-     * Adds a player regardless of remote or local
-     */
-    addPlayer(p, isLocal) {
-        let players = this._players.values();
-        let yPos = .8;
-        for(let player of players) {
-            yPos = player.yPos;
-            player.currentState = "idle";
-        }
-        yPos += 1.2;
-        p.yPos = yPos;
-        this._players.set(p.id, p);
-        if(isLocal) {
-            this._localPlayer = p;
-        }
-        this.emit("add-player", p);
     }
 }
