@@ -9,7 +9,8 @@
 
 Stream will start in a moment... Patience Grasshopper...
 
-This game aims to be a pseudo remake of the Final Fantasy V Rom Hack Ancient Cave. The basic idea is a Final Fantasy inspired rogue-esque game.
+This game aims to be a pseudo remake of the Final Fantasy V Rom Hack Ancient Cave.
+The basic idea is a Final Fantasy inspired rogue-esque game.
 
 http://www.twitch.tv/ianawill
 https://github.com/iwilliams/AncientCave
