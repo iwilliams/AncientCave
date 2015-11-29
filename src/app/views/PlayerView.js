@@ -126,8 +126,4 @@ export default class extends ObjectView {
             ]);
         }
     }
-
-    animateAttack() {
-
-    }
 }

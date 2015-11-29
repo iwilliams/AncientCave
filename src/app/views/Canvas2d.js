@@ -238,8 +238,6 @@ export default class extends EventEmitter {
         });
 
         game.on("player-attack", (player)=>{
-            //attackingPlayerView = this._playerViews.get(player.id);
-            //attackingPlayerView.animateAttack();
         });
 
         game.on("end-battle", ()=>{
