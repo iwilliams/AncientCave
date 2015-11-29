@@ -1,5 +1,6 @@
 import BaseModel     from '../BaseModel'; // Can't call this Object b/c of conflict xD
 import Logger from '../../services/Logger';
+import Config from '../../../Config';
 
 let JOBS = new Map();
 
@@ -87,6 +88,7 @@ class Player extends BaseModel {
             "ready",
             "resting",
             "walking",
+            "attacking"
         ]);
         this.currentState = "idle";
 
@@ -95,7 +97,7 @@ class Player extends BaseModel {
         });
         this.nextAction    = undefined;
 
-        if(job) this.job = job;
+        if(job) {this.job = job;}
     }
 
     set job(jobName) {
@@ -109,6 +111,11 @@ class Player extends BaseModel {
 
         this.maxCooldown = this._job.cooldown;
         this.cooldown = this._job.cooldown;
+
+        this.xPos = (Config.TILE_X - 3)*Config.TILE_SIZE;
+        if(this._job.position == "back") {
+            this.xPos++;
+        }
     }
 
     beginCombat() {
@@ -119,6 +126,51 @@ class Player extends BaseModel {
         this.currentState   = "idle";
         this.cooldown       = 0;
         this._readyToAttack = false;
+    }
+
+    walkForward(cb) {
+        let idleXPos = this.xPos;
+        let destXPos = this.xPos - Config.TILE_SIZE;
+
+        let step = (idleXPos - destXPos)/Config.FPS*2;
+
+        this.currentState = "walking";
+
+        let walkInterval = setInterval(()=>{
+           this.xPos -= step;
+           if(this.xPos <= destXPos) {
+               clearInterval(walkInterval);
+               this.currentState = "idle";
+               if(cb) cb();
+           }
+        }, 1000/Config.FPS);
+    }
+
+    attack(cb) {
+        this.currentState = "attacking";
+
+        let attackTimeout = setTimeout(()=>{
+            this.currentState = "idle";
+            if(cb) cb();
+        }, 250);
+    }
+
+    walkBack(cb) {
+        let currentXPos = this.xPos;
+        let destXPos = this.xPos + Config.TILE_SIZE;
+
+        let step = (destXPos - currentXPos)/Config.FPS*2;
+
+        this.currentState = "walking";
+
+        let walkInterval = setInterval(()=>{
+           this.xPos += step;
+           if(this.xPos >= destXPos) {
+               clearInterval(walkInterval);
+               this.currentState = "idle";
+               if(cb) cb();
+           }
+        }, 1000/Config.FPS);
     }
 
     endCombat() {
