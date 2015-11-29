@@ -4,12 +4,12 @@ import Logger       from './Logger';
 
 let events = [
     "peer-connect",
+    "player-ready",
     "player-job",
     "player-state",
     "player-action",
     "option-select",
 ];
-
 
 export default class extends EventEmitter {
 
@@ -148,22 +148,6 @@ export default class extends EventEmitter {
         }
     }
 
-    playerState(state) {
-        let message = this.createMessage("player-state", {
-                "id": this._id,
-                "state": state
-        });
-
-        this._sendMessage(message);
-    }
-
-    broadcastMessage(message) {
-        if(message.event === "player-job") {
-            this._selectedJob = message.data.job;
-        }
-        this._sendMessage(this.createMessage(message.event, message.data));
-    }
-
     /**
      * Handle incoming message
      */
@@ -192,5 +176,12 @@ export default class extends EventEmitter {
         }
 
         this.postMessage(message);
+    }
+
+    broadcastMessage(message) {
+        if(message.event === "player-job") {
+            this._selectedJob = message.data.job;
+        }
+        this._sendMessage(this.createMessage(message.event, message.data));
     }
 }

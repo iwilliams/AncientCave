@@ -66,9 +66,9 @@ class Player extends BaseModel {
     }
 
     set currentAction(action) {this._currentAction = action;}
+    get currentAction() {return this._currentAction}
 
     get currentState() {return this._currentState;}
-    get currentAction() {return this._currentAction;}
     get name() {return this._name;}
     get id() {return this._id;}
     get readyToAttack() {return this._readyToAttack;}
@@ -93,8 +93,7 @@ class Player extends BaseModel {
         this.currentAction = Immutable.Map({
             "action": "thinking"
         });
-
-        this.nextAction = undefined;
+        this.nextAction    = undefined;
 
         if(job) this.job = job;
     }
@@ -113,28 +112,32 @@ class Player extends BaseModel {
     }
 
     beginCombat() {
-        this.currentState  = "idle";
-        this.currentAction = Immutable.Map({
+        this.currentAction  = Immutable.Map({
             "action": "thinking"
         });
-        this.cooldown      = 0;
+
+        this.currentState   = "idle";
+        this.cooldown       = 0;
         this._readyToAttack = false;
     }
 
     endCombat() {
-        this.currentState   = "idle";
         this.currentAction  = Immutable.Map({
             "action": "thinking"
         });
-        this.cooldown = 0;
+
+        this.currentState   = "idle";
+        this.cooldown       = 0;
         this._readyToAttack = false;
         if(this._cooldownInterval) clearInterval(this._cooldownInterval);
     }
 
     chargeCooldown(callback) {
-        this._currentAction = Immutable.Map({
+        this.currentAction = this.nextAction || Immutable.Map({
             "action": "thinking"
         });
+        this.nextAction = undefined;
+
         this._readyToAttack = false;
         this.cooldown = 0;
 
