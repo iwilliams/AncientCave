@@ -160,8 +160,14 @@ export default class extends BaseModel {
 
     _playerAttack(p) {
         this.emit("player-attack", p);
-        this._combatPhase();
-        p.chargeCooldown(this._playerCooldownReady.bind(this));
+
+        p.walkForward(()=>{
+            this._combatPhase();
+            p.chargeCooldown(this._playerCooldownReady.bind(this));
+            p.attack(()=>{
+                p.walkBack();
+            });
+        });
     }
 
     _combatPhase() {
@@ -190,14 +196,15 @@ export default class extends BaseModel {
      * Adds a player regardless of remote or local
      */
     addPlayer(p, isLocal) {
-        let players = this._players.values();
-        let yPos = .8;
-        for(let player of players) {
-            yPos = player.yPos;
-            player.currentState = "idle";
+        let yPos = 2*Config.TILE_SIZE;
+
+        if(this._players.size) {
+            yPos += Config.TILE_SIZE*this._players.size;
+            yPos += Config.TILE_SIZE/4
         }
-        yPos += 1.2;
+
         p.yPos = yPos;
+
         this._players.set(p.id, p);
         if(isLocal) {
             this._localPlayer = p;
@@ -237,7 +244,6 @@ export default class extends BaseModel {
                 }
             }
         } else if(message.event == "player-job") {
-            Logger.banner("player-job");
             // Alter player's job
             let player = this._players.get(message.from);
             player.job = data.job;

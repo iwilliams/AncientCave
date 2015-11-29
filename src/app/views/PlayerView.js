@@ -46,10 +46,7 @@ export default class extends ObjectView {
 
         let playerWidth = Config.SPRITE_SIZE*Config.SPRITE_SCALE;
 
-        let xOffset = Config.TILE_X - 3;
-        if(this._player.position == "back") {
-            xOffset++;
-        }
+        let xOffset = this.xPos;
 
         let shadow      = this._resources.get('shadow');
 
@@ -64,22 +61,29 @@ export default class extends ObjectView {
             0, // DY
             shadow.width, // dWidth
             shadow.width, // dHeight
-            xOffset*(playerWidth), // sx ~ Replace with player X Pos
-            this._player.yPos*(playerWidth) + (playerWidth) - (Config.SPRITE_SCALE*this._resources.get('shadow').height/1.75), // sy ~ Replace with player Y Pos
+            this._player.xPos, // sx ~ Replace with player X Pos
+            this._player.yPos + (playerWidth) - (Config.SPRITE_SCALE*this._resources.get('shadow').height/1.75), // sy ~ Replace with player Y Pos
             playerWidth, // sWidth
             playerWidth  // sHeight
         ]);
 
+        let animationFrame = 0;
+
+        if(this._player.currentState === "walking") {
+            animationFrame = Config.SPRITE_SIZE*(this.frame);
+        } else if(this._player.currentState === "attacking") {
+            animationFrame = Config.SPRITE_SIZE*2;
+        }
 
         // Draw Player Sprite
         ctx.drawImage(...[
             this._resources.get('sprite'),
-            this._player.currentState === "walking" ? Config.SPRITE_SIZE*(this.frame) : 0, // DX
+            animationFrame,
             0, // DY
             Config.SPRITE_SIZE, // dWidth
             Config.SPRITE_SIZE, // dHeight
-            xOffset*(playerWidth), // sx ~ Replace with object X Pos
-            this._player.yPos*(playerWidth), // sy ~ Replace with object Y Pos
+            this._player.xPos, // sx ~ Replace with object X Pos
+            this._player.yPos, // sy ~ Replace with object Y Pos
             playerWidth, // sWidth
             playerWidth  // sHeight
         ]);
@@ -105,18 +109,25 @@ export default class extends ObjectView {
                 break;
         }
 
-        if(this._player.currentAction.get("action") !== "walk" && this._player.currentAction.get("action") !== "ready") {
+        if(this._player.currentAction.get("action") !== "walk"
+                && this._player.currentAction.get("action") !== "ready"
+                && this._player.currentState !== "walking"
+                && this._player.currentState !== "attacking") {
             ctx.drawImage(...[
                 this._resources.get('bubble'),
                 0,
                 bubbleOffset, // DY
                 bubble.width,  // dWidth
                 bubble.height/5, // dHeight
-                xOffset*(playerWidth) - (bubbleWidth/1.5), // sx ~ Replace with object X Pos
-                this._player.yPos*(playerWidth) - (bubbleHeight/1.5), // sy ~ Replace with object Y Pos
+                this._player.xPos - (bubbleWidth/1.5), // sx ~ Replace with object X Pos
+                this._player.yPos - (bubbleHeight/1.5), // sy ~ Replace with object Y Pos
                 bubbleWidth,  // sWidth
                 bubbleHeight  // sHeight
             ]);
         }
+    }
+
+    animateAttack() {
+
     }
 }
