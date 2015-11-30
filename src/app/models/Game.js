@@ -127,6 +127,7 @@ export default class extends BaseModel {
     _lookForTrouble() {
         // Set room to moving
         this._room.currentState = "moving";
+        this._moveTimer = 50;
 
         // Set players to walking
         for(let player of this.players.values()) {
@@ -142,9 +143,6 @@ export default class extends BaseModel {
             enemy
         ]);
 
-        setTimeout(()=>{
-            this._startBattle();
-        }, 2000);
     }
 
     _startBattle() {
@@ -170,6 +168,7 @@ export default class extends BaseModel {
         if(action.get("action") === "attack") {
             p.walkForward(()=>{
                 p.attack(()=>{
+                    Logger.debug("Game ATTACK");
                     this._combatPhase();
                     p.nextActionCycle();
                     p.walkBack(()=>{
@@ -229,7 +228,16 @@ export default class extends BaseModel {
 
     // Simulation Logic
     tick() {
+        if(this._room.currentState === "moving") {
+            this._moveTimer--;
+            if(this._moveTimer <= 0) {
+                this._startBattle();
+            }
+        }
 
+        for(let player of this.players.values()) {
+            player.tick();
+        }
     }
 
     handleMessage(message) {
