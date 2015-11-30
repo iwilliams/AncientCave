@@ -105,7 +105,8 @@ export default class extends BaseModel {
                     this._lookForTrouble();
                 }
             } else if (this._room.currentState === "battle") {
-                if(p.currentAction.get("action") === "attack" && p.readyToAttack) {
+                let actionName = p.currentAction.get("action");
+                if(actionName !== "thinking" && p.readyToAttack) {
                     this._playerAttack(p);
                 }
             }
