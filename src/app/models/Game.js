@@ -212,11 +212,10 @@ export default class extends BaseModel {
      * Adds a player regardless of remote or local
      */
     addPlayer(p, isLocal) {
-        let yPos = 2*Config.TILE_SIZE;
+        let yPos = 2.2;
 
         if(this._players.size) {
-            yPos += Config.TILE_SIZE*this._players.size;
-            yPos += Config.TILE_SIZE/4
+            yPos += 1.1*this._players.size;
         }
 
         p.yPos = yPos;

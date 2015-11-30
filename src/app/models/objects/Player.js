@@ -41,7 +41,7 @@ JOBS.set("necromancer", {
     'health': 40,
     'mana': 120,
     'cooldown': 80,
-    'position': 'front'
+    'position': 'back'
 });
 
 JOBS.set("ninja", {
@@ -125,9 +125,9 @@ class Player extends BaseModel {
         this.maxCooldown = this._job.cooldown;
         this.cooldown = this._job.cooldown;
 
-        this.xPos = (Config.TILE_X - 3)*Config.TILE_SIZE;
-        if(this._job.position == "back") {
-            this.xPos++;
+        this.xPos = Config.TILE_X - 3;
+        if(this._job.position === "back") {
+            this.xPos += .5;
         }
     }
 
@@ -147,9 +147,9 @@ class Player extends BaseModel {
 
     walkForward(cb) {
         let idleXPos = this.xPos;
-        let destXPos = this.xPos - Config.TILE_SIZE;
+        let destXPos = this.xPos - 1;
 
-        let step = (idleXPos - destXPos)/Config.FPS*2;
+        let step = .10;
 
         this.currentState = "walking";
 
@@ -174,9 +174,9 @@ class Player extends BaseModel {
 
     walkBack(cb) {
         let currentXPos = this.xPos;
-        let destXPos = this.xPos + Config.TILE_SIZE;
+        let destXPos = this.xPos + 1;
 
-        let step = (destXPos - currentXPos)/Config.FPS*2;
+        let step = .10;
 
         this.currentState = "walking";
 

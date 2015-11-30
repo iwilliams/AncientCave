@@ -50,10 +50,11 @@ export default class {
         return Promise.all(promises);
     }
 
-    play(soundName, loop) {
+    play(soundName, loop, volume) {
         if(Config.DISABLE_AUDIO) return;
         let sound = this._sounds.get(soundName);
         sound.loop(loop || false);
+        sound.volume(volume || .5);
         sound.play();
     }
 

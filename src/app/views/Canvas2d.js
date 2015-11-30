@@ -188,7 +188,7 @@ export default class extends EventEmitter {
                         ...views,
                         this._uiView
                     ];
-                    this._soundService.play("dungeon-theme", true);
+                    this._soundService.play("dungeon-theme", true, .3);
                 });
             }
         });
@@ -223,7 +223,7 @@ export default class extends EventEmitter {
 
         game.on("start-battle", ()=>{
             this._soundService.stop("dungeon-theme");
-            this._soundService.play("combat-theme", true);
+            this._soundService.play("combat-theme", true, .3);
             this._views = [
                 ...this._views,
                 ...this._enemyViews
@@ -241,7 +241,7 @@ export default class extends EventEmitter {
 
         game.on("end-battle", ()=>{
             this._soundService.stop("combat-theme");
-            this._soundService.play("dungeon-theme", true);
+            this._soundService.play("dungeon-theme", true, .3);
             this._views = [
                 this._roomView,
                 ...this._playerViews.values(),
@@ -330,6 +330,10 @@ export default class extends EventEmitter {
         // Back Input
         input.on("back", ()=>{
 
+        });
+
+        input.on("debug", ()=>{
+            this._debugView.toggle();
         });
     }
 }
