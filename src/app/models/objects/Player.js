@@ -140,8 +140,6 @@ class Player extends BaseModel {
     }
 
     beginCombat() {
-        this.nextActionCycle();
-
         this.currentState   = "idle";
         this.cooldown       = 0;
         this._readyToAttack = false;
@@ -206,7 +204,6 @@ class Player extends BaseModel {
     }
 
     chargeCooldown(callback) {
-        this._readyToAttack = false;
         this.cooldown = 0;
 
         if(this._cooldownInterval) clearInterval(this._cooldownInterval);
@@ -223,6 +220,7 @@ class Player extends BaseModel {
     }
 
     nextActionCycle() {
+        this._readyToAttack = false;
         this._actionCycle++;
         this.resetAction();
         this.chargeCooldown();

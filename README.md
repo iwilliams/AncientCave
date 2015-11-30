@@ -18,8 +18,7 @@ https://github.com/iwilliams/AncientCave
 Developing a JS clone of a FFV mod called Ancient Cave
 
 todo:
-- [x] Clean up network logic
-- [ ] Clean up model state logic
+- [ ] Finish network architecture...
 
 Twitter: @ianawill
 Twtich:  ianawill
