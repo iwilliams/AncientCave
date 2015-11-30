@@ -242,10 +242,10 @@ export default class extends BaseModel {
         } else if(message.event == "add-player") {
             let p = new Player(data.name, message.from, data.job);
             this.addPlayer(p, data.isLocal);
-        } else if(message.event == "remove-player") {
+        } else if(message.event == "player-remove") {
             // Remove the peers player from the game
             // Get and then delete player
-            let playerToRemove = this._players.get(message.id);
+            let playerToRemove = this._players.get(data);
             let playerRemoved  = this._players.delete(playerToRemove.id);
 
             // Make sure the player was there

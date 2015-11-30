@@ -129,7 +129,10 @@ export default class extends EventEmitter {
     }
 
     removePeer(peer) {
-        this.emit("peer-disconnect", peer.connection.peer);
+        this.postMessage({
+            "event": "player-remove",
+            "data": peer.connection.peer
+        });
         this._peers.delete(peer.connection.peer);
     }
 
