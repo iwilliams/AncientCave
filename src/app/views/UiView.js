@@ -92,30 +92,32 @@ export default class extends ObjectView {
 
         let xPos = Config.TILE_SIZE*1.2;
 
-        // Draw Info
-        ctx.fillText(...[
-            `${this._selectedOptionIndex == 0 ? ">" : ""}` + this._ui.currentOptions[0],
-            xPos,
-            yPos
-        ]);
+        if(this._view._game.localPlayer.currentState === "idle") {
+            // Draw Info
+            ctx.fillText(...[
+                `${this._selectedOptionIndex == 0 ? ">" : ""}` + this._ui.currentOptions[0],
+                xPos,
+                yPos
+            ]);
 
-        ctx.fillText(...[
-            `${this._selectedOptionIndex == 1 ? ">" : ""}` + this._ui.currentOptions[1],
-            xPos + Config.TILE_SIZE*2,
-            yPos
-        ]);
+            ctx.fillText(...[
+                `${this._selectedOptionIndex == 1 ? ">" : ""}` + this._ui.currentOptions[1],
+                xPos + Config.TILE_SIZE*2,
+                yPos
+            ]);
 
-        ctx.fillText(...[
-            `${this._selectedOptionIndex == 2 ? ">" : ""}` + this._ui.currentOptions[2],
-            xPos,
-            yPos + fontSize*2
-        ]);
+            ctx.fillText(...[
+                `${this._selectedOptionIndex == 2 ? ">" : ""}` + this._ui.currentOptions[2],
+                xPos,
+                yPos + fontSize*2
+            ]);
 
-        ctx.fillText(...[
-            `${this._selectedOptionIndex == 3 ? ">" : ""}` + this._ui.currentOptions[3],
-            xPos + Config.TILE_SIZE*2,
-            yPos + fontSize*2
-        ]);
+            ctx.fillText(...[
+                `${this._selectedOptionIndex == 3 ? ">" : ""}` + this._ui.currentOptions[3],
+                xPos + Config.TILE_SIZE*2,
+                yPos + fontSize*2
+            ]);
+        }
 
         xPos = Config.TILE_SIZE*5;
         yPos = Config.TILE_SIZE*(Config.TILE_Y-this._tileHeight);
@@ -196,14 +198,16 @@ export default class extends ObjectView {
     }
 
     up() {
-        if(this._selectedOptionIndex == 0)
-            this._selectedOptionIndex = 2;
-        else if (this._selectedOptionIndex == 1)
-            this._selectedOptionIndex = 3;
-        else if (this._selectedOptionIndex == 2)
-            this._selectedOptionIndex = 0;
-        else if (this._selectedOptionIndex == 3)
-            this._selectedOptionIndex = 1;
+        if(this._view._game.localPlayer.currentState === "idle") {
+            if(this._selectedOptionIndex == 0)
+                this._selectedOptionIndex = 2;
+            else if (this._selectedOptionIndex == 1)
+                this._selectedOptionIndex = 3;
+            else if (this._selectedOptionIndex == 2)
+                this._selectedOptionIndex = 0;
+            else if (this._selectedOptionIndex == 3)
+                this._selectedOptionIndex = 1;
+        }
     }
 
     down() {
@@ -211,14 +215,16 @@ export default class extends ObjectView {
     }
 
     left() {
-        if(this._selectedOptionIndex == 0)
-            this._selectedOptionIndex = 1;
-        else if (this._selectedOptionIndex == 1)
-            this._selectedOptionIndex = 0;
-        else if (this._selectedOptionIndex == 2)
-            this._selectedOptionIndex = 3;
-        else if (this._selectedOptionIndex == 3)
-            this._selectedOptionIndex = 2;
+        if(this._view._game.localPlayer.currentState === "idle") {
+            if(this._selectedOptionIndex == 0)
+                this._selectedOptionIndex = 1;
+            else if (this._selectedOptionIndex == 1)
+                this._selectedOptionIndex = 0;
+            else if (this._selectedOptionIndex == 2)
+                this._selectedOptionIndex = 3;
+            else if (this._selectedOptionIndex == 3)
+                this._selectedOptionIndex = 2;
+        }
     }
 
     right() {
@@ -226,22 +232,24 @@ export default class extends ObjectView {
     }
 
     confirm() {
-        let currentOption = this._ui.currentOptions[this._selectedOptionIndex];
+        if(this._view._game.localPlayer.currentState === "idle") {
+            let currentOption = this._ui.currentOptions[this._selectedOptionIndex];
 
-        let action = Immutable.Map({
-            "cycle": this._view._game.localPlayer.actionCycle,
-            "action": this._ui.currentOptions[this._selectedOptionIndex],
-            "target": 0
-        });
+            let action = Immutable.Map({
+                "cycle": this._view._game.localPlayer.actionCycle,
+                "action": this._ui.currentOptions[this._selectedOptionIndex],
+                "target": 0
+            });
 
-        if(!Immutable.is(action, this._view._game.localPlayer.currentAction)) {
-            let message = {
-                "event": "player-action",
-                "from": this._view._game.localPlayer.id,
-                "data": action
+            if(!Immutable.is(action, this._view._game.localPlayer.currentAction)) {
+                let message = {
+                    "event": "player-action",
+                    "from": this._view._game.localPlayer.id,
+                    "data": action
+                }
+
+                this._view.postMessage(message);
             }
-
-            this._view.postMessage(message);
         }
     }
 }

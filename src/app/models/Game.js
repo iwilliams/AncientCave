@@ -118,6 +118,10 @@ export default class extends BaseModel {
         this._room        = new Room();
         this._ui          = new Ui();
         this.currentState = "playing";
+
+        for(let player of this.players.values()) {
+            player.currentState = "idle";
+        }
     }
 
     _lookForTrouble() {
@@ -163,10 +167,17 @@ export default class extends BaseModel {
 
     _playerAction(p) {
         let action = p.currentAction;
-        if(action.get("action")) {
-            this._combatPhase();
+        if(action.get("action") === "attack") {
+            p.walkForward(()=>{
+                p.attack(()=>{
+                    this._combatPhase();
+                    p.nextActionCycle();
+                    p.walkBack();
+                });
+            });
+        } else {
+            p.nextActionCycle();
         }
-        p.nextActionCycle();
     }
 
     _combatPhase() {

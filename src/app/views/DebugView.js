@@ -21,7 +21,15 @@ export default class {
 
         for(let player of game.players.values()) {
             line += fontSize;
-            ctx.fillText(player.name + " " + player.actionCycle, 40, line);
+            ctx.fillText(player.name, 40, line);
+            line += fontSize;
+            ctx.fillText("Action Cycle: " + player.actionCycle, 60, line);
+            line += fontSize;
+            ctx.fillText("Current Action: " + player.currentAction.get("action"), 60, line);
+            line += fontSize;
+            ctx.fillText("Next Action: " + (player.nextAction ? player.nextAction.get("action") : "NONE"), 60, line);
+            line += fontSize;
+            ctx.fillText("Current State: " + player.currentState, 60, line);
         }
     }
 }
