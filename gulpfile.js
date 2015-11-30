@@ -34,6 +34,20 @@ gulp.task('es6', function() {
 });
 defaultTasks.push('es6');
 
+// Compile es6 code
+// http://stackoverflow.com/questions/24992980/how-to-uglify-output-with-browserify-in-gulp
+gulp.task('simulation-worker', function() {
+    browserify("./src/app/workers/SimulationWorker.js", { debug: true })
+      .transform(babelify)
+      .bundle()
+      .on("error", function (err) { console.log("Error : " + err.message); })
+      .pipe(source('SimulationWorker.js'))
+      //.pipe(buffer())
+      //.pipe(uglify())
+      .pipe(gulp.dest('./dist/workers'));
+});
+defaultTasks.push('simulation-worker');
+
 // Vendor Scripts
 gulp.task('vendor-scripts', function() {
     return gulp.src([
@@ -59,7 +73,7 @@ gulp.task('watch-scripts', function() {
 
     gulp.watch([
         './src/**/*.js',
-    ], ['es6']);
+    ], ['es6', 'simulation-worker']);
 });
 defaultTasks.push('watch-scripts');
 

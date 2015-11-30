@@ -1,4 +1,8 @@
 export default class {
+    static loadWorker(worker) {
+        return new Worker(`./dist/workers/${worker}.js`);
+    }
+
     static limitloop(fn, fps) {
         // Use var then = Date.now(); if you
         // don't care about targetting < IE9
