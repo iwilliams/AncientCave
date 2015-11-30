@@ -13,6 +13,7 @@ import RoomView     from './RoomView';
 import MainMenuView from './MainMenuView';
 import LobbyView    from './LobbyView';
 import UiView       from './UiView';
+import DebugView    from './DebugView';
 
 export default class extends EventEmitter {
     constructor() {
@@ -25,6 +26,7 @@ export default class extends EventEmitter {
         this._canvas.height = Config.CANVAS_HEIGHT;
 
         this._views = new Set();
+
     }
 
     /**
@@ -40,6 +42,8 @@ export default class extends EventEmitter {
 
     init(game) {
         this._game = game;
+
+        this._debugView = new DebugView(game);
 
         this._inputService = new InputService();
 
@@ -77,14 +81,7 @@ export default class extends EventEmitter {
             // Calculate next render cycle
             let time_el = (this.then - this.first)/1000;
             ++this.counter;
-            let fps = parseInt(this.counter/time_el);
-
-            // Show FPS
-            let fontSize          = 5*Config.SPRITE_SCALE;
-            this._ctx.font        = fontSize + "px Courier New";
-            this._ctx.fillStyle   = "#ffffff";
-
-            this._ctx.fillText(this._frame + "/" + Config.FPS + " " + fps + "fps", 20, 20);
+            this._fps = parseInt(this.counter/time_el);
 
             // Increment Frame
             this._frame++;
@@ -102,6 +99,8 @@ export default class extends EventEmitter {
         for(let view of this._views)  {
             view.render(this._ctx, frame);
         }
+
+        this._debugView.render(this._ctx, frame, this._fps);
     }
 
     getMainMenuViews() {

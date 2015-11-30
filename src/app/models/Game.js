@@ -107,7 +107,7 @@ export default class extends BaseModel {
             } else if (this._room.currentState === "battle") {
                 let actionName = p.currentAction.get("action");
                 if(actionName !== "thinking" && p.readyToAttack) {
-                    this._playerAttack(p);
+                    this._playerAction(p);
                 }
             }
         }
@@ -126,6 +126,7 @@ export default class extends BaseModel {
 
         // Set players to walking
         for(let player of this.players.values()) {
+            player.nextActionCycle();
             player.currentState = "walking";
         }
 
@@ -160,14 +161,12 @@ export default class extends BaseModel {
         this.emit('start-battle');
     }
 
-    _playerAttack(p) {
-        //p.walkForward(()=>{
-        this._combatPhase();
-        p.chargeCooldown();
-            //p.attack(()=>{
-                //p.walkBack();
-            //});
-        //});
+    _playerAction(p) {
+        let action = p.currentAction;
+        if(action.get("action")) {
+            this._combatPhase();
+        }
+        p.nextActionCycle();
     }
 
     _combatPhase() {
@@ -183,13 +182,13 @@ export default class extends BaseModel {
     }
 
     _endBattle() {
-        this._room.currentState = "idle";
-        this._ui.setIdleOptions();
-        this.emit('end-battle');
-
         for(let player of this.players.values()) {
             player.endCombat();
         }
+
+        this._room.currentState = "idle";
+        this._ui.setIdleOptions();
+        this.emit('end-battle');
     }
 
     /**
