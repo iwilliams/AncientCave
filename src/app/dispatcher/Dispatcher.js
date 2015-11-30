@@ -1,4 +1,5 @@
 import Logger         from '../services/Logger';
+import Utils          from '../services/Utils';
 import EventEmitter   from '../mixins/EventEmitter';
 import NetworkService from '../services/NetworkService';
 
@@ -10,6 +11,10 @@ export default class extends EventEmitter {
     init(view) {
         this._view = view;
         this._view.onmessage = this.handleViewMessages.bind(this);
+
+        // Initialize simulation loop
+        this._simulationWorker           = Utils.loadWorker("SimulationWorker");
+        this._simulationWorker.onmessage = this.handleSimulationMessages.bind(this);
     }
 
     initMultiplayerGame(message) {
@@ -113,6 +118,17 @@ export default class extends EventEmitter {
 
             this.postMessage(message);
             this._networkService.broadcastMessage(message);
+        }
+    }
+
+    /**
+     * Register SimulationWorker messages
+     */
+    handleSimulationMessages(message) {
+        if(message) {
+            this.postMessage({
+                "event": "tick"
+            });
         }
     }
 }

@@ -63,7 +63,9 @@ export default class extends EventEmitter {
 
                 // If we know about a peer then connect
                 if(this._host)
-                    this.addPeer(this._peer.connect(this._host));
+                    this.addPeer(this._peer.connect(this._host, {
+                        "reliable": true
+                    }));
 
                 // When a peer connects handle it
                 this._peer.on('connection', (connection)=>{
@@ -127,7 +129,10 @@ export default class extends EventEmitter {
     }
 
     removePeer(peer) {
-        this.emit("peer-disconnect", peer.connection.peer);
+        this.postMessage({
+            "event": "player-remove",
+            "data": peer.connection.peer
+        });
         this._peers.delete(peer.connection.peer);
     }
 
@@ -163,7 +168,9 @@ export default class extends EventEmitter {
             for(let peer of data.peers) {
                 if(!this._peers.get(peer) && peer !== this._id) {
                     Logger.network(`Adding Peer with id ${peer}`);
-                    this.addPeer(this._peer.connect(peer));
+                    this.addPeer(this._peer.connect(peer, {
+                        "reliable": true
+                    }));
                 }
             }
 

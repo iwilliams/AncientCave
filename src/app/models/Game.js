@@ -127,6 +127,7 @@ export default class extends BaseModel {
     _lookForTrouble() {
         // Set room to moving
         this._room.currentState = "moving";
+        this._moveTimer = 50;
 
         // Set players to walking
         for(let player of this.players.values()) {
@@ -142,9 +143,6 @@ export default class extends BaseModel {
             enemy
         ]);
 
-        setTimeout(()=>{
-            this._startBattle();
-        }, 2000);
     }
 
     _startBattle() {
@@ -170,6 +168,7 @@ export default class extends BaseModel {
         if(action.get("action") === "attack") {
             p.walkForward(()=>{
                 p.attack(()=>{
+                    Logger.debug("Game ATTACK");
                     this._combatPhase();
                     p.nextActionCycle();
                     p.walkBack(()=>{
@@ -212,11 +211,10 @@ export default class extends BaseModel {
      * Adds a player regardless of remote or local
      */
     addPlayer(p, isLocal) {
-        let yPos = 2*Config.TILE_SIZE;
+        let yPos = 2.2;
 
         if(this._players.size) {
-            yPos += Config.TILE_SIZE*this._players.size;
-            yPos += Config.TILE_SIZE/4
+            yPos += 1.1*this._players.size;
         }
 
         p.yPos = yPos;
@@ -228,55 +226,73 @@ export default class extends BaseModel {
         this.emit("add-player", p);
     }
 
+    // Simulation Logic
+    tick() {
+        if(this._room.currentState === "moving") {
+            this._moveTimer--;
+            if(this._moveTimer <= 0) {
+                this._startBattle();
+            }
+        }
+
+        for(let player of this.players.values()) {
+            player.tick();
+        }
+    }
+
     handleMessage(message) {
-        Logger.debug("Message recieved from dispatcher");
-        Logger.log(message);
+        if(message.event === "tick") {
+            this.tick();
+        } else {
+            Logger.debug("Message recieved from dispatcher");
+            Logger.log(message);
 
-        // Assign event name and data
-        let eventName = message.event;
-        let data = message.data;
+            // Assign event name and data
+            let eventName = message.event;
+            let data = message.data;
 
-        if(eventName == "game-start") {
-            this.currentState = "main menu";
-        } else if(message.event == "game-state") {
-            this.currentState = data;
-        } else if(message.event == "add-player") {
-            let p = new Player(data.name, message.from, data.job);
-            this.addPlayer(p, data.isLocal);
-        } else if(message.event == "remove-player") {
-            // Remove the peers player from the game
-            // Get and then delete player
-            let playerToRemove = this._players.get(message.id);
-            let playerRemoved  = this._players.delete(playerToRemove.id);
+            if(eventName == "game-start") {
+                this.currentState = "main menu";
+            } else if(message.event == "game-state") {
+                this.currentState = data;
+            } else if(message.event == "add-player") {
+                let p = new Player(data.name, message.from, data.job);
+                this.addPlayer(p, data.isLocal);
+            } else if(message.event == "player-remove") {
+                // Remove the peers player from the game
+                // Get and then delete player
+                let playerToRemove = this._players.get(data);
+                let playerRemoved  = this._players.delete(playerToRemove.id);
 
-            // Make sure the player was there
-            if(playerRemoved) {
-                this.emit("remove-player", playerToRemove);
+                // Make sure the player was there
+                if(playerRemoved) {
+                    this.emit("remove-player", playerToRemove);
 
-                if(this.currentState == "lobby") {
-                    for(let player of this._players.values()) {
-                        player.currentState = "idle";
+                    if(this.currentState == "lobby") {
+                        for(let player of this._players.values()) {
+                            player.currentState = "idle";
+                        }
                     }
                 }
+            } else if(message.event == "player-job") {
+                // Alter player's job
+                let player = this._players.get(message.from);
+                player.job = data.job;
+            } else if(message.event == "player-state") {
+                // Alter player's state
+                let player = this._players.get(message.from);
+                player.currentState = data.state;
+
+                // Progress Game logic accoridng to player state
+                this.checkPlayerState();
+            } else if(message.event == "player-action") {
+                let player = this._players.get(message.from);
+
+                let action = Immutable.Map(data);
+                player.currentAction = action;
+
+                this.checkPlayerAction(player);
             }
-        } else if(message.event == "player-job") {
-            // Alter player's job
-            let player = this._players.get(message.from);
-            player.job = data.job;
-        } else if(message.event == "player-state") {
-            // Alter player's state
-            let player = this._players.get(message.from);
-            player.currentState = data.state;
-
-            // Progress Game logic accoridng to player state
-            this.checkPlayerState();
-        } else if(message.event == "player-action") {
-            let player = this._players.get(message.from);
-
-            let action = Immutable.Map(data);
-            player.currentAction = action;
-
-            this.checkPlayerAction(player);
         }
     }
 }

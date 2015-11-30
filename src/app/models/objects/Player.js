@@ -41,7 +41,7 @@ JOBS.set("necromancer", {
     'health': 40,
     'mana': 120,
     'cooldown': 80,
-    'position': 'front'
+    'position': 'back'
 });
 
 JOBS.set("ninja", {
@@ -125,9 +125,9 @@ class Player extends BaseModel {
         this.maxCooldown = this._job.cooldown;
         this.cooldown = this._job.cooldown;
 
-        this.xPos = (Config.TILE_X - 3)*Config.TILE_SIZE;
-        if(this._job.position == "back") {
-            this.xPos++;
+        this.xPos = Config.TILE_X - 3;
+        if(this._job.position === "back") {
+            this.xPos += .5;
         }
     }
 
@@ -140,58 +140,41 @@ class Player extends BaseModel {
     }
 
     beginCombat() {
-        this.nextActionCycle();
-
         this.currentState   = "idle";
         this.cooldown       = 0;
         this._readyToAttack = false;
     }
 
+    /**
+     * Move player forward
+     */
     walkForward(cb) {
-        let idleXPos = this.xPos;
-        let destXPos = this.xPos - Config.TILE_SIZE;
-
-        let step = (idleXPos - destXPos)/Config.FPS*2;
-
         this.currentState = "walking";
-
-        let walkInterval = setInterval(()=>{
-           this.xPos -= step;
-           if(this.xPos <= destXPos) {
-               clearInterval(walkInterval);
-               this.currentState = "idle";
-               if(cb) cb();
-           }
-        }, 1000/Config.FPS);
+        this._isWalkingForward = true;
+        this._idleXPos = this.xPos;
+        this._destXPos = this.xPos - 1;
+        if (cb) this._onWalkForward = cb;
     }
 
+    /**
+     * Player attack
+     */
     attack(cb) {
         this.currentState = "attacking";
-
-        let attackTimeout = setTimeout(()=>{
-            this.currentState = "idle";
-            if(cb) cb();
-        }, 250);
+        this._attackDelay = 10;
+        if(cb) this._onAttack = cb;
     }
 
+    /**
+     * Move player backward
+     */
     walkBack(cb) {
-        let currentXPos = this.xPos;
-        let destXPos = this.xPos + Config.TILE_SIZE;
-
-        let step = (destXPos - currentXPos)/Config.FPS*2;
-
         this.currentState = "walking";
-
-        let walkInterval = setInterval(()=>{
-           this.xPos += step;
-           if(this.xPos >= destXPos) {
-               clearInterval(walkInterval);
-               this.currentState = "idle";
-               if(cb) cb();
-           }
-        }, 1000/Config.FPS);
+        this._isWalkingBack = true;
+        let currentXPos = this.xPos;
+        this._destXPos = this.xPos + 1;
+        if(cb) this._onWalkBack = cb;
     }
-
 
     endCombat() {
         this.nextActionCycle();
@@ -201,28 +184,19 @@ class Player extends BaseModel {
         this._readyToAttack = false;
 
         this.onCooldown = undefined;
-
-        if(this._cooldownInterval) clearInterval(this._cooldownInterval);
+        this._isCoolingdown = false;
     }
 
+    /**
+     * Update so we know to charge cooldown meeter
+     */
     chargeCooldown(callback) {
-        this._readyToAttack = false;
         this.cooldown = 0;
-
-        if(this._cooldownInterval) clearInterval(this._cooldownInterval);
-
-        this._cooldownInterval = setInterval(()=>{
-            this.cooldown++;
-            if(this.cooldown >= this.maxCooldown) {
-                clearInterval(this._cooldownInterval);
-                this._readyToAttack = true;
-                if(this.onCooldown)
-                    this.onCooldown(this);
-            }
-        }, 60);
+        this._isCoolingdown = true;
     }
 
     nextActionCycle() {
+        this._readyToAttack = false;
         this._actionCycle++;
         this.resetAction();
         this.chargeCooldown();
@@ -232,6 +206,49 @@ class Player extends BaseModel {
         this._actionCycle = 0;
         this._nextAction = undefined;
         this.resetAction();
+    }
+
+    tick() {
+        if(this._isCoolingdown) {
+            this.cooldown++;
+            if(this.cooldown >= this.maxCooldown) {
+                this._isCoolingdown = false;
+                this._readyToAttack = true;
+                if(this.onCooldown)
+                    this.onCooldown(this);
+            }
+        }
+
+        if(this._isWalkingForward) {
+            let step = .10;
+            this.xPos -= step;
+
+            if(this.xPos <= this._destXPos) {
+                this._isWalkingForward = false;
+                this.currentState = "idle";
+                if(this._onWalkForward) this._onWalkForward();
+            }
+        }
+
+        if(this.currentState == "attacking") {
+            this._attackDelay--;
+            if(this._attackDelay <= 0) {
+                Logger.debug("DONE ATTACKING");
+                this.currentState = "idle";
+                if(this._onAttack) this._onAttack();
+            }
+        }
+
+        if(this._isWalkingBack) {
+            let step = .10;
+
+            this.xPos += step;
+            if(this.xPos >= this._destXPos) {
+                this.currentState = "idle";
+                this._isWalkingBack = false;
+                if(this._onWalkBack) this._onWalkBack();
+            }
+        }
     }
 }
 
