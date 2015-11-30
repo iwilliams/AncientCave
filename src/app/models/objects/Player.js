@@ -132,8 +132,6 @@ class Player extends BaseModel {
     }
 
     resetAction() {
-        this.nextActionCycle();
-
         this.currentAction  = this.nextAction || Immutable.Map({
             "action": "thinking",
             "cycle": this.actionCycle
@@ -142,7 +140,7 @@ class Player extends BaseModel {
     }
 
     beginCombat() {
-        this.resetAction();
+        this.nextActionCycle();
 
         this.currentState   = "idle";
         this.cooldown       = 0;
@@ -196,7 +194,7 @@ class Player extends BaseModel {
 
 
     endCombat() {
-        this.resetAction();
+        this.nextActionCycle();
 
         this.currentState   = "idle";
         this.cooldown       = 0;
@@ -208,8 +206,6 @@ class Player extends BaseModel {
     }
 
     chargeCooldown(callback) {
-        this.resetAction();
-
         this._readyToAttack = false;
         this.cooldown = 0;
 
@@ -228,6 +224,8 @@ class Player extends BaseModel {
 
     nextActionCycle() {
         this._actionCycle++;
+        this.resetAction();
+        this.chargeCooldown();
     }
 }
 
