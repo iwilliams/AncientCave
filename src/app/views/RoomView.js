@@ -85,7 +85,7 @@ export default class extends ObjectView {
         }
 
         // Calculate Offsets
-        let xStep = Config.SPRITE_SIZE*Config.SPRITE_SCALE/16;
+        let xStep = Config.SPRITE_SIZE*Config.SPRITE_SCALE/24;
         if(this._room.currentState == "moving") {
             this._floorOffset += xStep;
             if(this._floorOffset >= floorWidth - 1) this._floorOffset = 0;
