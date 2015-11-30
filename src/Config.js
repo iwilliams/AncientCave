@@ -39,7 +39,7 @@ config.calculate = function() {
     config.TILE_SIZE     = config.SPRITE_SIZE*config.SPRITE_SCALE;
 
     // Set FPS
-    config.FPS = 30;
+    config.FPS = 60;
 }
 
 config.calculate();

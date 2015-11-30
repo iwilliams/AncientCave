@@ -2,8 +2,8 @@ import EventEmitter from '../mixins/EventEmitter';
 
 // Import Services
 import InputService from '../services/KeyboardInputService';
-import Config from '../../Config';
-import Logger from '../services/Logger';
+import Config       from '../../Config';
+import Logger       from '../services/Logger';
 import SoundService from '../services/SoundService';
 
 // Import views

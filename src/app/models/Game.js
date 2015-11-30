@@ -127,7 +127,7 @@ export default class extends BaseModel {
     _lookForTrouble() {
         // Set room to moving
         this._room.currentState = "moving";
-        this._moveTimer = 50;
+        this._moveTimer = 100;
 
         // Set players to walking
         for(let player of this.players.values()) {
