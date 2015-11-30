@@ -57,27 +57,6 @@ class PlayerAction {
 
 class Player extends BaseModel {
 
-    get job() {
-        return this._job;
-    }
-    set currentState(state) {
-        if(this._states.has(state)) {
-            this._currentState = state;
-        }
-    }
-
-    set currentAction(action) {this._currentAction = action;}
-    get currentAction() {return this._currentAction}
-
-    get currentState() {return this._currentState;}
-    get name() {return this._name;}
-    get id() {return this._id;}
-    get readyToAttack() {return this._readyToAttack;}
-
-    static getJobs() {
-        return [...JOBS.values()];
-    }
-
     constructor(name, id, job) {
         super();
         this._name = name;
@@ -95,9 +74,43 @@ class Player extends BaseModel {
         this.currentAction = Immutable.Map({
             "action": "thinking"
         });
-        this.nextAction    = undefined;
+        this._nextAction    = undefined;
+
+        // Store the action cycle
+        this._actionCycle  = 0;
+
+        this._isBusy = false;
+
 
         if(job) {this.job = job;}
+    }
+
+    set currentState(state) {
+        if(this._states.has(state)) {
+            this._currentState = state;
+        }
+    }
+
+    set currentAction(action) {
+        if(action.get("cycle") > this.actionCycle) {
+            this._nextAction = action;
+        } else {
+            this._currentAction = action;
+        }
+    }
+
+    get job()           {return this._job;}
+    get currentAction() {return this._currentAction}
+    get nextAction()    {return this._nextAction}
+    get currentState()  {return this._currentState;}
+    get name()          {return this._name;}
+    get id()            {return this._id;}
+    get readyToAttack() {return this._readyToAttack;}
+    get isBusy()        {return this._isBusy}
+    get actionCycle()   {return this._actionCycle}
+
+    static getJobs() {
+        return [...JOBS.values()];
     }
 
     set job(jobName) {
@@ -173,22 +186,30 @@ class Player extends BaseModel {
         }, 1000/Config.FPS);
     }
 
-    endCombat() {
-        this.currentAction  = Immutable.Map({
-            "action": "thinking"
+    resetAction() {
+        this.nextActionCycle();
+
+        this.currentAction  = this.nextAction || Immutable.Map({
+            "action": "thinking",
+            "cycle": this.actionCycle
         });
+        this._nextAction = undefined;
+    }
+
+    endCombat() {
+        this.resetAction();
 
         this.currentState   = "idle";
         this.cooldown       = 0;
         this._readyToAttack = false;
+
+        this.onCooldown = undefined;
+
         if(this._cooldownInterval) clearInterval(this._cooldownInterval);
     }
 
     chargeCooldown(callback) {
-        this.currentAction = this.nextAction || Immutable.Map({
-            "action": "thinking"
-        });
-        this.nextAction = undefined;
+        this.resetAction();
 
         this._readyToAttack = false;
         this.cooldown = 0;
@@ -200,9 +221,14 @@ class Player extends BaseModel {
             if(this.cooldown >= this.maxCooldown) {
                 clearInterval(this._cooldownInterval);
                 this._readyToAttack = true;
-                callback(this);
+                if(this.onCooldown)
+                    this.onCooldown(this);
             }
         }, 60);
+    }
+
+    nextActionCycle() {
+        this._actionCycle++;
     }
 }
 

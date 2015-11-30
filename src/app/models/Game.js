@@ -144,26 +144,25 @@ export default class extends BaseModel {
     _startBattle() {
         this._room.currentState = "battle";
         this._ui.setBattleOptions();
+
         for(let player of this.players.values()) {
             player.beginCombat();
-            player.chargeCooldown(this._playerCooldownReady.bind(this));
+
+            player.onCooldown = ()=>{
+                this.checkPlayerAction(player);
+                this.emit("player-cooldown", player);
+            };
+
+            player.chargeCooldown();
         }
+
         this.emit('start-battle');
     }
 
-    _playerCooldownReady(player) {
-        if(player.currentAction.get("action") === "attack") {
-            this._playerAttack(player);
-        }
-        this.emit("player-cooldown", player);
-    }
-
     _playerAttack(p) {
-        this.emit("player-attack", p);
-
         //p.walkForward(()=>{
         this._combatPhase();
-        p.chargeCooldown(this._playerCooldownReady.bind(this));
+        p.chargeCooldown();
             //p.attack(()=>{
                 //p.walkBack();
             //});
@@ -258,13 +257,7 @@ export default class extends BaseModel {
             let player = this._players.get(message.from);
 
             let action = Immutable.Map(data);
-
-            // If the player already has an action then que next action
-            if(player.currentAction.get("action") === "thinking" || player === this.localPlayer) {
-                player.currentAction = action;
-            } else {
-                player.nextAction    = action;
-            }
+            player.currentAction = action;
 
             this.checkPlayerAction(player);
         }
