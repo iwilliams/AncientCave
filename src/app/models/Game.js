@@ -228,7 +228,7 @@ export default class extends BaseModel {
 
     // Simulation Logic
     tick() {
-        if(if(this._room && this._room.currentState === "moving") {
+        if(this._room && this._room.currentState === "moving") {
             this._moveTimer--;
             if(this._moveTimer <= 0) {
                 this._startBattle();
