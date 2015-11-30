@@ -130,7 +130,7 @@ export default class extends BaseModel {
 
         // Set players to walking
         for(let player of this.players.values()) {
-            player.nextActionCycle();
+            player.resetActionCycle();
             player.currentState = "walking";
         }
 
@@ -172,7 +172,11 @@ export default class extends BaseModel {
                 p.attack(()=>{
                     this._combatPhase();
                     p.nextActionCycle();
-                    p.walkBack();
+                    p.walkBack(()=>{
+                        if(this._room.currentState === "idle") {
+                            p.endCombat();
+                        }
+                    });
                 });
             });
         } else {
@@ -194,7 +198,9 @@ export default class extends BaseModel {
 
     _endBattle() {
         for(let player of this.players.values()) {
-            player.endCombat();
+            if(player.currentState === "idle") {
+                player.endCombat();
+            }
         }
 
         this._room.currentState = "idle";

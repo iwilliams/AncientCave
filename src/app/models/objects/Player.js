@@ -227,6 +227,12 @@ class Player extends BaseModel {
         this.resetAction();
         this.chargeCooldown();
     }
+
+    resetActionCycle() {
+        this._actionCycle = 0;
+        this._nextAction = undefined;
+        this.resetAction();
+    }
 }
 
 export default Player;
