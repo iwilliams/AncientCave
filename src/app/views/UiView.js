@@ -229,6 +229,7 @@ export default class extends ObjectView {
         let currentOption = this._ui.currentOptions[this._selectedOptionIndex];
 
         let action = Immutable.Map({
+            "cycle": this._view._game.localPlayer.actionCycle,
             "action": this._ui.currentOptions[this._selectedOptionIndex],
             "target": 0
         });
