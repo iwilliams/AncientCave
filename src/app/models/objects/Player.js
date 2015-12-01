@@ -208,6 +208,17 @@ class Player extends BaseModel {
         this.resetAction();
     }
 
+    damage() {
+        Logger.debug(`${this.name} Damaged!`);
+        if(this.health > 0) {
+            this.health -= 10;
+        }
+
+        if(this.health < 0 ){
+            this.health = 0;
+        }
+    }
+
     tick() {
         if(this._isCoolingdown) {
             this.cooldown++;

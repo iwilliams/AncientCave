@@ -65,6 +65,13 @@
                 cursor: default;
             }
 
+            #controls {
+                position: fixed;
+                bottom: 10px;
+                left: 10px;
+                z-index: 99999;
+            }
+
         </style>
     </head>
     <body>
@@ -75,6 +82,13 @@
 <!--\_/ \_/_| |_|\___|_|\___|_| |_|\__| \____/\__,_| \_/ \___|-->
         <!--</pre>-->
     <!--<button>Full Screen</button>-->
+        <div id="controls">
+            <button id="up" name="up">up</button>
+            <button id="down" name="down">down</button>
+            <button id="left" name="left">left</button>
+            <button id="right" name="right">right</button>
+            <button id="confirm" name="confirm">confirm</button>
+        </div>
         <script src="dist/vendor.js"></script>
         <script src="dist/AncientCave.js"></script>
     </body>

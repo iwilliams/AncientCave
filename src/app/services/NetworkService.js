@@ -48,7 +48,8 @@ export default class extends EventEmitter {
      * @return Promise
      *
      */
-    init() {
+    init(rng) {
+        if(rng) this._rng = rng;
 
         // Initialize the peer connection
         this._peer = new Peer(this._id, {
@@ -111,6 +112,9 @@ export default class extends EventEmitter {
             "name": this._name,
             "job": this._selectedJob || undefined
         }
+
+        if(this._rng)
+            data.rng = this._rng.state();
 
         // Build list of peers
         let peers = [];
@@ -177,6 +181,14 @@ export default class extends EventEmitter {
             // See if we have already connected to this peer
             if(this._peers.get(message.from) && !this._peers.get(message.from).hasConnected) {
                 this.connectToPeer(this._peers.get(message.from));
+            }
+
+            if(data.rng && !this._rng) {
+                this._rng = new Math.seedrandom("", {state: data.rng});
+                this.postMessage({
+                    "event": "rng-set",
+                    "data": this._rng
+                });
             }
 
             message.event = "add-player";

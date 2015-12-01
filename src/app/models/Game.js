@@ -23,6 +23,7 @@ export default class extends BaseModel {
     get lobby() {return this._lobby;}
     get players() {return this._players;}
     get localPlayer() {return this._localPlayer;}
+    get enemies() {return this._enemies;}
     get room() {return this._room;}
     get ui() {return this._ui;}
 
@@ -127,7 +128,7 @@ export default class extends BaseModel {
     _lookForTrouble() {
         // Set room to moving
         this._room.currentState = "moving";
-        this._moveTimer = 100;
+        this._moveTimer = this._rng.quick()*200;
 
         // Set players to walking
         for(let player of this.players.values()) {
@@ -158,6 +159,18 @@ export default class extends BaseModel {
             };
 
             player.chargeCooldown();
+        }
+
+        for(let enemy of this.enemies.values()) {
+            enemy.onCooldown = ()=>{
+                let players = [...this.players.values()];
+                players.sort((a,b) => {return a.name > b.name});
+                let targetPlayer = players[parseInt(this._rng.quick()*players.length)];
+                targetPlayer.damage();
+                enemy.chargeCooldown();
+            };
+
+            enemy.chargeCooldown();
         }
 
         this.emit('start-battle');
@@ -202,6 +215,8 @@ export default class extends BaseModel {
             }
         }
 
+        this._enemies = new Set();
+
         this._room.currentState = "idle";
         this._ui.setIdleOptions();
         this.emit('end-battle');
@@ -235,9 +250,13 @@ export default class extends BaseModel {
             }
         }
 
-        for(let player of this.players.values()) {
-            player.tick();
-        }
+        let objs = [...this.players.values()];
+
+        if(this.enemies)
+            objs = [...objs, ...this.enemies.values()];
+
+        for(let obj of objs)
+            obj.tick();
     }
 
     handleMessage(message) {
@@ -255,6 +274,9 @@ export default class extends BaseModel {
                 this.currentState = "main menu";
             } else if(message.event == "game-state") {
                 this.currentState = data;
+            } else if(message.event == "rng-set") {
+                this._rng = data;
+                window.rng = this._rng;
             } else if(message.event == "add-player") {
                 let p = new Player(data.name, message.from, data.job);
                 this.addPlayer(p, data.isLocal);

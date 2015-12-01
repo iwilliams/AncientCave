@@ -2,6 +2,7 @@ import EventEmitter from '../mixins/EventEmitter';
 
 // Import Services
 import InputService from '../services/KeyboardInputService';
+import MobileInputService from '../services/MobileInputService';
 import Config       from '../../Config';
 import Logger       from '../services/Logger';
 import SoundService from '../services/SoundService';
@@ -46,6 +47,7 @@ export default class extends EventEmitter {
         this._debugView = new DebugView(game);
 
         this._inputService = new InputService();
+        this._mobileInputService = new MobileInputService();
 
         this._element.appendChild(this._canvas);
         this._ctx = this._canvas.getContext('2d');
@@ -57,6 +59,7 @@ export default class extends EventEmitter {
 
         this.listenToGameEvents(this._game);
         this.registerInputHandlers(this._inputService);
+        this.registerInputHandlers(this._mobileInputService);
     }
 
     // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe/
