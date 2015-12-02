@@ -24,10 +24,15 @@ export default class extends EventEmitter {
             args = [message.name, message.hostId];
         } else {
             args = [message.name];
+            this._rng = new Math.seedrandom("", {state: true});
+            this.postMessage({
+                "event": "rng-set",
+                "data": this._rng
+            });
         }
         // Init mp controller
         this._networkService = new NetworkService(...args);
-        this._networkService.init().then(()=>{
+        this._networkService.init(this._rng).then(()=>{
 
             this._networkService.onmessage = message => {
                 this.postMessage(message);
@@ -56,24 +61,6 @@ export default class extends EventEmitter {
         this.postMessage({
             "event": "game-state",
             "data": "main menu"
-        });
-    }
-
-    /**
-     * When we get a peer connect event form the multiplayer controller, create a add player event
-     */
-    peerConnect(message) {
-        Logger.debug("Dispatcher: Peer Connect Message");
-        Logger.log(message);
-
-        Logger.debug("Dispatcher: Broadcast Add Player Message");
-        this.postMessage({
-            "event": "add-player",
-            "data": {
-                "id": message.from,
-                "name": message.data.name,
-                "job": message.data.job
-            }
         });
     }
 

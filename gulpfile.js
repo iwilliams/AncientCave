@@ -15,7 +15,7 @@ var bowerDir = function(dir) {
 var includes = {
     keypress: bowerDir('Keypress/'),
     peerjs:   bowerDir('peerjs/'),
-    rngjs:   bowerDir('rng-js/'),
+    seedrandom: bowerDir('seedrandom/'),
     howlerjs: bowerDir('howler.js/'),
     immutable: bowerDir('immutable/dist/')
 }
@@ -53,7 +53,7 @@ gulp.task('vendor-scripts', function() {
     return gulp.src([
         includes.keypress   + 'keypress-2.1.3.min.js',
         includes.peerjs     + 'peer.min.js',
-        includes.rngjs      + 'rng.js',
+        includes.seedrandom + 'seedrandom.js',
         includes.howlerjs   + 'howler.js',
         includes.immutable  + 'immutable.min.js'
     ])
