@@ -1,6 +1,6 @@
 import BaseModel     from '../BaseModel'; // Can't call this Object b/c of conflict xD
 import Logger from '../../services/Logger';
-import Config from '../../../Config';
+//import Config from '../../../Config';
 
 let JOBS = new Map();
 

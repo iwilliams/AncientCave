@@ -1,97 +1,16 @@
-// Import Mixins
-import EventEmitter from '../mixins/eventEmitter';
-
-// Import Utils
-import Utils     from '../services/Utils';
-import Logger    from '../services/Logger';
-import Config    from '../../Config';
-import Rng       from '../services/Rng';
-
-// Import Models
 import BaseModel from './BaseModel';
-import Player    from './objects/Player';
-import Enemy     from './objects/Monster';
-import Room      from './objects/Room';
-import MainMenu  from './objects/MainMenu';
-import Lobby     from './objects/Lobby';
-import Ui        from './objects/Ui';
+
+let STATES = [
+    "main menu",
+    "lobby",
+    "playing"
+];
 
 export default class extends BaseModel {
 
-    get currentState() {return this._currentState;}
-    get mainMenu() {return this._mainMenu;}
-    get lobby() {return this._lobby;}
-    get players() {return this._players;}
-    get localPlayer() {return this._localPlayer;}
-    get enemies() {return this._enemies;}
-    get room() {return this._room;}
-    get ui() {return this._ui;}
-
     constructor() {
-        super();
-
-        this._states = new Set([
-            "main menu",
-            "lobby",
-            "playing"
-        ]);
-
-        this._mainMenu = new MainMenu();
-        this._lobby    = new Lobby();
-    }
-
-    /**
-     * Initialize this Controller
-     *
-     * @return Promise
-     *
-     */
-    init(dispatcher) {
-        return new Promise((res, rej)=>{
-            this._dispatcher = dispatcher;
-
-            this._players = new Map();
-
-            // LISTEN FOR EVENTS
-            //this.listenToDispatcher(this._dispatcher);
-            this._dispatcher.onmessage = this.handleMessage.bind(this);
-
-            res();
-        });
-    }
-
-    /**
-     * Update the game state if its allowed
-     * Make sure we emit it
-     */
-    set currentState(state) {
-        if(this._states.has(state)) {
-            this._currentState = state;
-            if(this._currentState == "main menu") {
-                // Reset all players
-                this._players     = new Map();
-                this._localPlayer = undefined;
-            }
-            this.emit("game-state", this._currentState);
-        }
-    }
-
-    /**
-     * Call this function after any playerstae change so we can decide what to do.
-     */
-    checkPlayerState() {
-        // If we are in the loby decide if we need to start the game
-        if(this.currentState === "lobby") {
-            let readyToStart = true;
-            for(let player of this.players.values()) {
-                readyToStart = readyToStart && player.currentState === "ready";
-            }
-
-            if(readyToStart) {
-                Logger.banner("STARTING GAME");
-                this._startPlaying();
-            }
-        }
+        super(STATES)
+        this.state = "main menu";
     }
 
     checkPlayerAction(p) {

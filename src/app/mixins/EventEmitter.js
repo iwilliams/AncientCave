@@ -10,6 +10,7 @@ export default class {
     constructor() {
         this._maxListeners = DEFAULT_MAX_LISTENERS
         this._events = {}
+        this._listeners = [];
     }
 
     on(types, listener) {
@@ -81,8 +82,13 @@ export default class {
         this._maxListeners = newMaxListeners
     }
 
+    set onmessage(fn) {
+        this._listeners.push(fn);
+    }
+
     postMessage(message) {
-        if(this.onmessage)
-            this.onmessage(message);
+        for(let listener of this._listeners) {
+            listener(message);
+        }
     }
 }

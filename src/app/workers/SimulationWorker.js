@@ -1,108 +1,159 @@
- //var activeLoops = [];
+// Utils
+import Message from '../services/Message';
+import Logger  from '../services/Logger';
+import seedrandom from '../services/Rng';
 
-//var getLoopId = (function() {
-	//var staticLoopId = 0;
-	//return function() {
-		//return staticLoopId++;
-	//}
-//})();
+// Models
+import Game    from '../models/Game';
+import Room    from '../models/objects/Room';
+import Player  from '../models/objects/Player';
+import Monster from '../models/objects/Monster';
 
-//let setGameLoop = function(update, tickLengthMs) {
+class Simulation {
 
-	//var loopId = getLoopId();
-	//activeLoops.push(loopId);
+    /**
+     * Sets the state of a model
+     */
+    setState(model, state) {
+        try {
+            model.state = state;
+            this.outboundMessages.push(new Message(model.stateMessage, model.state));
+        } catch (err) {
+            Logger.err(err);
+        }
+    }
 
-	/**
-	 * Length of a tick in milliseconds. The denominator is your desired framerate.
-	 * e.g. 1000 / 20 = 20 fps, 1000 / 60 = 60 fps
-	 */
-	//tickLengthMs = tickLengthMs || 1000 / 30;
+    constructor() {
+        this.then = Date.now();
+        this.interval = 1000/30;
+        this.first = this.then;
+        this.counter = 0;
+        this.messageStack = [];
 
-	//[> gameLoop related variables <]
-	//// timestamp of each loop
-	//var previousTick = Date.now();
-	//// number of times gameLoop gets called
-	//var actualTicks = 0;
+        // Initialize basic models
+        this.players = new Map();
+        this.game    = new Game();
+    }
 
-	//var gameLoop = function() {
-		//var now = Date.now();
+    /**
+     * Game Loop Logic
+     */
+    tick() {
+        // Get current messages and then reset the stack
+        let messages = this.messageStack;
+        this.messageStack = [];
+        this.outboundMessages = [];
 
-		//actualTicks++
-		//if (previousTick + tickLengthMs <= now) {
-			//var delta = (now - previousTick) / 1000;
-			//previousTick = now;
+        // Process all messages that have come in since last tick
+        for(let message of messages) {
+            let eventName = message.event;
+            let data      = message.data;
 
-			//// actually run user code
-			//update(delta);
+            // Decide what to do with message
+            switch(eventName) {
+                case "game-host":
+                    this.setState(this.game, "lobby");
+                case "game-start":
+                    this.rng = seedrandom(data.seed || "");
+                    this.queueMessage(new Message("game-create", 1));
+                    break;
+            }
+        }
 
-			//actualTicks = 0;
-		//}
+        switch(this.game.state) {
+            case "lobby":
+                this.lobbyTick();
+                break;
+            case "playing":
+                this.playingTick();
+                break;
+        }
 
-		//// do not go on to renew loop if no longer active
-		//if (activeLoops.indexOf(loopId) === -1) {
-			//return;
-		//}
+        // Do we need to broadcast tick?
+        if(this.outboundMessages.length)
+            self.postMessage(this.outboundMessages);
+    }
 
-		//// otherwise renew loop in 16ms multiples, or immediately
-		//if (Date.now() - previousTick < tickLengthMs - 16) {
-			//setTimeout(gameLoop, 16);
-		//} else {
-			//setTimeout(gameLoop, 1);
-		//}
-	//}
+    /**
+     * Game logic for when in lobby
+     */
+    lobbyTick() {
+        let gameReady = true;
 
-	//// begin the loop!
-	//gameLoop();
+        // Check if all players are ready
+        for(let player of this.players.values())
+            gameReady &= player.ready;
 
-	//return loopId;
-//};
+        // If all players are ready change the game state
+        if(gameReady && false) {
+            this.setState(this.game, "playing");
+            this.room = this.createRoom();
+            this.queueMessages.push(new Message("room-create", this.room.type));
+        }
+    }
 
-//let clearGameLoop = function(loopId) {
-	//// remove the loop id from the active loops
-	//activeLoops.splice(activeLoops.indexOf(loopId), 1);
-//};
+    /**
+     * Game logic for when playing
+     */
+    playingTick() {
 
-//let loop = setGameLoop(()=>{
-    //self.postMessage(1);
-//}, 1000/30);
+    }
 
-//let interval = setInterval(()=>{
-    //self.postMessage(1);
-//}, 1000/30);
+    createRoom() {
+        let type = Room.TYPES[parseInt(this.rng.quick()*Room.TYPES.length)];
+        return new Room(type);
+    }
 
-let then = Date.now();
-let interval = 1000/30;
-let first = then;
-let counter = 0;
+    /**
+     * Add message to the outbound queue
+     */
+    queueMessage(message) {
+        this.outboundMessages.push(message.serialize());
+    }
 
-function loop() {
+    /**
+     * Procces incoming message
+     */
+    onMessage(message) {
+        let decodedMessage = new Message(message.data);
+        this.messageStack.push(decodedMessage);
+    }
 
-    let now = Date.now();
-    let delta = now - then;
+    /**
+     * Run closest to the FPS as possible
+     */
+    loop() {
+        let now = Date.now();
+        let delta = now - this.then;
 
-    // If the fps interval is correct
-    if (delta > interval) {
-        // Calculate time since last frame
-        then = now - (delta % interval);
+        // If the fps interval is correct
+        if (delta > this.interval) {
+            // Calculate time since last frame
+            this.then = now - (delta % this.interval);
 
-        // Set up Rendering
-        let _frame = _frame || 1;
-        _frame = (_frame%30) ? _frame : 1;
+            this.tick();
 
-        // Render game
-        self.postMessage(1);
+            // Calculate next render cycle
+            let time_el = (this.then - this.first)/1000;
+            ++this.counter;
+            //let _fps = parseInt(counter/time_el);
 
-        // Calculate next render cycle
-        let time_el = (then - first)/1000;
-        ++this.counter;
-        let _fps = parseInt(counter/time_el);
-
-        // Increment Frame
-        _frame++;
-        //loop();
-    } else {
-        //setTimeout(loop, 1);
+            // Increment Frame
+            this.loop();
+        } else {
+            setTimeout(this.loop.bind(this), 1);
+        }
     }
 }
-let intervalTimer = setInterval(loop, 13);
-//loop();
+
+// Initialize a new simulation
+let simulation = new Simulation();
+
+// Attach I/O
+onmessage = simulation.onMessage.bind(simulation);
+simulation.postMessage = postMessage;
+
+// Start the simulation
+simulation.loop();
+
+self.simulation = simulation;

@@ -17,7 +17,7 @@ import UiView       from './UiView';
 import DebugView    from './DebugView';
 
 export default class extends EventEmitter {
-    constructor() {
+    constructor(dispatcher) {
         super();
 
         this._element = document.body;
@@ -27,7 +27,6 @@ export default class extends EventEmitter {
         this._canvas.height = Config.CANVAS_HEIGHT;
 
         this._views = new Set();
-
     }
 
     /**
@@ -41,13 +40,16 @@ export default class extends EventEmitter {
         this._ctx.imageSmoothingEnabled = false;
     }
 
-    init(game) {
-        this._game = game;
+    init(dispatcher, dataStore) {
+        //dispatcher.onmessage = this.handleMessage.bind(this);
+        this._game = dataStore;
 
-        this._debugView = new DebugView(game);
+        //this._debugView = new DebugView(game);
 
         this._inputService = new InputService();
         this._mobileInputService = new MobileInputService();
+        this.registerInputHandlers(this._inputService);
+        this.registerInputHandlers(this._mobileInputService);
 
         this._element.appendChild(this._canvas);
         this._ctx = this._canvas.getContext('2d');
@@ -57,9 +59,12 @@ export default class extends EventEmitter {
         //window.resize = this.resize.bind(this);
         window.addEventListener("resize", this.resize.bind(this));
 
-        this.listenToGameEvents(this._game);
-        this.registerInputHandlers(this._inputService);
-        this.registerInputHandlers(this._mobileInputService);
+        this._mainMenuView = new MainMenuView(dataStore.mainMenu, this);
+
+        this._views.add(this._mainMenuView);
+
+        // Start render loop
+        this.startRender();
     }
 
     // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe/
@@ -103,7 +108,7 @@ export default class extends EventEmitter {
             view.render(this._ctx, frame);
         }
 
-        this._debugView.render(this._ctx, frame, this._fps);
+        //this._debugView.render(this._ctx, frame, this._fps);
     }
 
     getMainMenuViews() {
@@ -259,7 +264,7 @@ export default class extends EventEmitter {
     registerInputHandlers(input) {
         // Up input
         input.on("up", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._game.game.state;
             switch(gameState) {
                 case "main menu":
                     this._mainMenuView.up();
@@ -273,7 +278,7 @@ export default class extends EventEmitter {
 
         // Down Input
         input.on("down", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._game.game.state;
             switch(gameState) {
                 case "main menu":
                     this._mainMenuView.down();
@@ -287,7 +292,7 @@ export default class extends EventEmitter {
 
         // Left Input
         input.on("left", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._game.game.state;
             switch(gameState) {
                 case "lobby":
                     this._lobbyView.left();
@@ -301,7 +306,7 @@ export default class extends EventEmitter {
 
         // Right Input
         input.on("right", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._game.game.state;
             switch(gameState) {
                 case "lobby":
                     this._lobbyView.right();
@@ -315,7 +320,7 @@ export default class extends EventEmitter {
 
         // Confirm Input
         input.on("confirm", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._game.game.state;
             switch(gameState) {
                 case "main menu":
                     this._mainMenuView.confirm(this);

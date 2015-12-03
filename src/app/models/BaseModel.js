@@ -1,26 +1,33 @@
-import EventEmitter from '../mixins/EventEmitter';
 import Logger       from '../services/Logger';
 
-export default class extends EventEmitter {
-
-    constructor() {
-        super();
+export default class {
+    constructor(states) {
+        this._states = states;
     }
 
-    set currentState(state) {
-        if(this._states.has(state)) {
-            Logger.debug("SET STATE TO STATE");
-            this._currentState = state;
+    /**
+     * Set the state if it is legal.
+     */
+    set state(state) {
+        if(this._states.indexOf(state) >= 0) {
+            this._state = state;
+        } else {
+            throw `State ${state} is not allowed`;
         }
     }
 
-    set currentState(state) {
-        if(this._states.has(state)) {
-            this._currentState = state;
-        }
+    /**
+     * Return the current state
+     */
+    get state() {
+        return this._state;
     }
 
-    get currentState() {
-        return this._currentState;
+    /**
+     * Return the name of the state message we need to send to modify
+     * this model
+     */
+    get stateMessage() {
+        return this._stateMessage;
     }
 }

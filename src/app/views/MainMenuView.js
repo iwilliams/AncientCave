@@ -1,5 +1,7 @@
 import ObjectView      from './ObjectView';
 import Utils           from '../services/Utils';
+import Logger          from '../services/Logger';
+import Message         from '../services/Message';
 import Config          from '../../Config';
 import ResrouceService from '../services/ResourceService';
 
@@ -98,13 +100,8 @@ export default class extends ObjectView {
             },
             confirm: function() {
                 if(nameInput.value.trim()) {
-                    view.postMessage({
-                        "event": "start-mp",
-                        "data": {
-                            name: nameInput.value,
-                            id: idInput.value
-                        }
-                    });
+                    let message = new Message("game-host", {});
+                    view.postMessage(message.serialize());
                     this.remove();
                 }
             }

@@ -11,6 +11,10 @@ export default class {
         console.trace(`%c${msg}`, 'font-size: 15px; background: #FDF485; color: #000;');
     }
 
+    static err(msg) {
+        console.trace(`%c${msg}`, 'font-size: 15px; background: #FDF485; color: #F00;');
+    }
+
     static log(msg) {
         console.trace(msg);
     }

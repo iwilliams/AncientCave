@@ -1,5 +1,6 @@
 import Logger         from '../services/Logger';
 import Utils          from '../services/Utils';
+import Message        from '../services/Message';
 import EventEmitter   from '../mixins/EventEmitter';
 import NetworkService from '../services/NetworkService';
 
@@ -9,12 +10,11 @@ export default class extends EventEmitter {
     }
 
     init(view) {
-        this._view = view;
-        this._view.onmessage = this.handleViewMessages.bind(this);
-
         // Initialize simulation loop
         this._simulationWorker           = Utils.loadWorker("SimulationWorker");
         this._simulationWorker.onmessage = this.handleSimulationMessages.bind(this);
+
+        view.onmessage = this.handleViewMessages.bind(this);
     }
 
     initMultiplayerGame(message) {
@@ -91,31 +91,33 @@ export default class extends EventEmitter {
      * Register all view messages
      */
     handleViewMessages(message) {
-        let event = message.event;
-        let data  = message.data;
+        Logger.debug("Recieved message from view:");
+        Logger.log(new Message(message));
+        this._simulationWorker.postMessage(message);
+        //let event = message.event;
+        //let data  = message.data;
 
-        if(event === "start-mp") {
-            this.initMultiplayerGame(data);
-        } else if (event === "leave-game") {
-            this.leaveGame()
-        } else {
-            // Convert any Immutable data to JSON
-            if(message.data && message.data.toJSON)
-                message.data = data.toJSON();
+        //if(event === "start-mp") {
+            //this.initMultiplayerGame(data);
+        //} else if (event === "leave-game") {
+            //this.leaveGame()
+        //} else {
+            //// Convert any Immutable data to JSON
+            //if(message.data && message.data.toJSON)
+                //message.data = data.toJSON();
 
-            this.postMessage(message);
-            this._networkService.broadcastMessage(message);
-        }
+            //this.postMessage(message);
+            //this._networkService.broadcastMessage(message);
+        //}
     }
 
     /**
      * Register SimulationWorker messages
      */
-    handleSimulationMessages(message) {
-        if(message) {
-            this.postMessage({
-                "event": "tick"
-            });
+    handleSimulationMessages(e) {
+        console.log(e.data);
+        for(let message of e.data) {
+            this.postMessage(message);
         }
     }
 }
