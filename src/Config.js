@@ -42,6 +42,6 @@ config.calculate = function() {
     config.FPS = 60;
 }
 
-config.calculate();
+if(self.document) config.calculate();
 
 export default config;

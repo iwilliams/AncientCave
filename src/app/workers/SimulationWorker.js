@@ -1,13 +1,14 @@
 // Utils
-import Message from '../services/Message';
-import Logger  from '../services/Logger';
-import seedrandom from '../services/Rng';
+import Config       from '../../Config';
+import Message      from '../services/Message';
+import Logger       from '../services/Logger';
+import seedrandom   from '../services/Rng';
 
 // Models
-import Game    from '../models/Game';
-import Room    from '../models/objects/Room';
-import Player  from '../models/objects/Player';
-import Monster from '../models/objects/Monster';
+import Game         from '../models/Game';
+import Room         from '../models/objects/Room';
+import Player       from '../models/objects/Player';
+import Monster      from '../models/objects/Monster';
 
 class Simulation {
 
@@ -29,10 +30,12 @@ class Simulation {
         this.first = this.then;
         this.counter = 0;
         this.messageStack = [];
+        this.outboundMessages = [];
 
         // Initialize basic models
         this.players = new Map();
         this.game    = new Game();
+        this.setState(this.game, "lobby");
     }
 
     /**
@@ -42,7 +45,6 @@ class Simulation {
         // Get current messages and then reset the stack
         let messages = this.messageStack;
         this.messageStack = [];
-        this.outboundMessages = [];
 
         // Process all messages that have come in since last tick
         for(let message of messages) {
@@ -70,8 +72,10 @@ class Simulation {
         }
 
         // Do we need to broadcast tick?
-        if(this.outboundMessages.length)
+        if(this.outboundMessages.length) {
             self.postMessage(this.outboundMessages);
+            this.outboundMessages = [];
+        }
     }
 
     /**
@@ -99,6 +103,9 @@ class Simulation {
 
     }
 
+    /**
+     * Helper to create a room based on RNG
+     */
     createRoom() {
         let type = Room.TYPES[parseInt(this.rng.quick()*Room.TYPES.length)];
         return new Room(type);

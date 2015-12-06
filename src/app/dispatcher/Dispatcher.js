@@ -10,9 +10,6 @@ export default class extends EventEmitter {
     }
 
     init(view) {
-        // Initialize simulation loop
-        this._simulationWorker           = Utils.loadWorker("SimulationWorker");
-        this._simulationWorker.onmessage = this.handleSimulationMessages.bind(this);
 
         view.onmessage = this.handleViewMessages.bind(this);
     }
@@ -92,8 +89,16 @@ export default class extends EventEmitter {
      */
     handleViewMessages(message) {
         Logger.debug("Recieved message from view:");
-        Logger.log(new Message(message));
-        this._simulationWorker.postMessage(message);
+        let decodedMessage = new Message(message);
+        Logger.log(decodedMessage);
+
+        if(decodedMessage.event == "game-host") {
+            // Initialize simulation loop
+            this._simulationWorker           = Utils.loadWorker("SimulationWorker");
+            this._simulationWorker.onmessage = this.handleSimulationMessages.bind(this);
+        } else {
+            this._simulationWorker.postMessage(message);
+        }
         //let event = message.event;
         //let data  = message.data;
 
