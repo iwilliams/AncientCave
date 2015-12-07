@@ -53,76 +53,81 @@ export default class extends EventEmitter {
         });
     }
 
-    leaveGame() {
-        this._networkService.disconnect();
-        this.postMessage({
-            "event": "game-state",
-            "data": "main menu"
-        });
-    }
-
-    /**
-     * When we get a peer disconnect event form the multiplayer controller, create a remove player event
-     */
-    peerDisconnect(message) {
-        Logger.debug("Dispatcher: Peer Disconnect Message");
-        Logger.log(message);
-
-        Logger.debug("Dispatcher: Broadcast Remove Player Message");
-        this.postMessage({
-           "event": "remove-player",
-            "data": {
-                "id": message
-            }
-        });
-    }
-
     /**
      * Register all multiplayer Events
      */
     handleMultiplayerMessages(message) {
-        this.postMessage(message);
+        if(!this._simulationWorker) {
+            this.postMessage(message);
+        }
     }
 
     /**
      * Register all view messages
      */
     handleViewMessages(message) {
-        Logger.debug("Recieved message from view:");
-        let decodedMessage = new Message(message);
+        Logger.debug("Dispatcher recieved message from View:");
+        let decodedMessage = message;
         Logger.log(decodedMessage);
 
-        if(decodedMessage.event == "game-host") {
+        if(decodedMessage.event === "game-host") {
             // Initialize simulation loop
             this._simulationWorker           = Utils.loadWorker("SimulationWorker");
             this._simulationWorker.onmessage = this.handleSimulationMessages.bind(this);
+
+            this._networkService = new NetworkService(message.data.name);
+            this._networkService.onmessage  = this.handleNetworkMessages.bind(this);
+            this._networkService.init(message.data.id).then((id)=>{
+                //Logger.banner("network initdd");
+                let playerMessage = new Message(0, "game-host", {
+                    "name": message.data.name,
+                    "id": id
+                });
+                this._simulationWorker.postMessage(playerMessage);
+            });
+        } else if(decodedMessage.event === "game-join") {
+            this._networkService = new NetworkService(message.data.name, "host");
+            this._networkService.onmessage  = this.handleNetworkMessages.bind(this);
+            this._networkService.init();
         } else {
-            this._simulationWorker.postMessage(message);
+            if(this._simulationWorker) {
+                this._simulationWorker.postMessage(message);
+            } else {
+                if(this._networkService) {
+                    this._networkService.sendMessages([message]);
+                }
+                //this.postMessage(message);
+            }
         }
-        //let event = message.event;
-        //let data  = message.data;
+    }
 
-        //if(event === "start-mp") {
-            //this.initMultiplayerGame(data);
-        //} else if (event === "leave-game") {
-            //this.leaveGame()
-        //} else {
-            //// Convert any Immutable data to JSON
-            //if(message.data && message.data.toJSON)
-                //message.data = data.toJSON();
+    /**
+     * Register SimulationWorker messages
+     */
+    handleNetworkMessages(messages) {
+        for(let message of messages) {
+            Logger.debug("Dispatcher recieved message from Network");
+            Logger.log(message);
 
-            //this.postMessage(message);
-            //this._networkService.broadcastMessage(message);
-        //}
+            // If we are the host proccess the message and let the simulation verify it
+            if(this._simulationWorker) {
+                this._simulationWorker.postMessage(message);
+            } else { // if we are a client then just blindly accept the all mighty message
+                this.postMessage(message);
+            }
+        }
     }
 
     /**
      * Register SimulationWorker messages
      */
     handleSimulationMessages(e) {
-        console.log(e.data);
         for(let message of e.data) {
+            Logger.debug("Dispatcher recieved message from Simulation");
+            Logger.log(message);
             this.postMessage(message);
         }
+        if(this._networkService)
+            this._networkService.sendMessages(e.data);
     }
 }

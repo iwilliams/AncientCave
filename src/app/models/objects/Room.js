@@ -8,6 +8,10 @@ let STATES = [
 ];
 
 class Room extends BaseModel {
+    get stateMessage() {
+        return "room-state";
+    }
+
     static get TYPES() {
         return [
             "cave",

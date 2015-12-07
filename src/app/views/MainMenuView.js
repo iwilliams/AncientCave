@@ -98,11 +98,14 @@ export default class extends ObjectView {
             remove: function() {
                 this.element.remove()
             },
-            confirm: function() {
+            confirm: ()=>{
                 if(nameInput.value.trim()) {
-                    let message = new Message("game-host", {});
-                    view.postMessage(message.serialize());
-                    this.remove();
+                    let message = new Message(0, "game-host", {
+                        "name": nameInput.value.trim(),
+                        "id": this._id
+                    });
+                    this._view.postMessage(message);
+                    this._dialog.remove();
                 }
             }
         };
@@ -149,14 +152,10 @@ export default class extends ObjectView {
             },
             confirm: function() {
                 if(nameInput.value.trim() && hostInput.value.trim()) {
-                    view.postMessage({
-                        "event": "start-mp",
-                        "data": {
-                            name: nameInput.value,
-                            hostId: hostInput.value,
-                            id: idInput.value
-                        }
-                    });
+                    view.postMessage(new Message(0, "game-join", {
+                        name: nameInput.value,
+                        hostId: hostInput.value
+                    }));
                     this.remove();
                 }
             }

@@ -1,6 +1,6 @@
 import BaseModel     from '../BaseModel'; // Can't call this Object b/c of conflict xD
 import Logger from '../../services/Logger';
-//import Config from '../../../Config';
+import Config from '../../../Config';
 
 let JOBS = new Map();
 
@@ -62,8 +62,12 @@ let STATES = [
 
 class Player extends BaseModel {
 
-    static get JOBS() {
+    static getJobs() {
         return [...JOBS.values()];
+    }
+
+    get stateMessage() {
+        return "player-state";
     }
 
     get job()           {return this._job;}
@@ -93,11 +97,6 @@ class Player extends BaseModel {
 
         this.maxCooldown = this._job.cooldown;
         this.cooldown = this._job.cooldown;
-
-        this.xPos = Config.TILE_X - 3;
-        if(this._job.position === "back") {
-            this.xPos += .5;
-        }
     }
 
     constructor(name, id, job) {
@@ -107,9 +106,9 @@ class Player extends BaseModel {
 
         this.state = "idle";
 
-        this.currentAction = Immutable.Map({
-            "action": "thinking"
-        });
+        //this.currentAction = Immutable.Map({
+            //"action": "thinking"
+        //});
         this._nextAction    = undefined;
 
         // Store the action cycle

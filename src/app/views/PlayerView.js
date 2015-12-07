@@ -70,7 +70,7 @@ export default class extends ObjectView {
 
         let animationFrame = 0;
 
-        if(this._player.currentState === "walking") {
+        if(this._player.state === "walking") {
             animationFrame = Config.SPRITE_SIZE*(this.frame);
         } else if(this._player.currentState === "attacking") {
             animationFrame = Config.SPRITE_SIZE*2;
@@ -83,8 +83,8 @@ export default class extends ObjectView {
             0, // DY
             Config.SPRITE_SIZE, // dWidth
             Config.SPRITE_SIZE, // dHeight
-            xOffset, // sx ~ Replace with object X Pos
-            yOffset, // sy ~ Replace with object Y Pos
+            xOffset, //xOffset, // sx ~ Replace with object X Pos
+            yOffset, //yOffset, // sy ~ Replace with object Y Pos
             playerWidth, // sWidth
             playerWidth  // sHeight
         ]);
@@ -92,7 +92,7 @@ export default class extends ObjectView {
         // Draw Bubble
         let bubbleOffset = 0;
 
-        switch(this._player.currentAction.get("action")) {
+        switch(this._player.action) {
             case "thinking":
                 bubbleOffset = 0;
                 break;
@@ -110,10 +110,10 @@ export default class extends ObjectView {
                 break;
         }
 
-        if(this._player.currentAction.get("action") !== "walk"
-                && this._player.currentAction.get("action") !== "ready"
-                && this._player.currentState !== "walking"
-                && this._player.currentState !== "attacking") {
+        if(this._player.action !== "walk"
+            && this._player.action !== "ready"
+            && this._player.state !== "walking"
+            && this._player.state !== "attacking") {
             ctx.drawImage(...[
                 this._resources.get('bubble'),
                 0,

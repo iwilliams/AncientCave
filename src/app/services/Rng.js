@@ -27,7 +27,7 @@ let math = Math;
 //
 // The following constants are related to IEEE 754 limits.
 //
-var global = this,
+var global = self,
     width = 256,        // each RC4 output is 0 <= x < 256
     chunks = 6,         // at least six RC4 outputs for each double
     digits = 52,        // there are 52 significant digits in a double
@@ -199,9 +199,9 @@ function autoseed() {
     (global.crypto || global.msCrypto).getRandomValues(out);
     return tostring(out);
   } catch (e) {
-    var browser = global.navigator,
+    var browser = self.navigator,
         plugins = browser && browser.plugins;
-    return [+new Date, global, plugins, global.screen, tostring(pool)];
+    return [+new Date, global, plugins, self.screen, tostring(pool)];
   }
 }
 

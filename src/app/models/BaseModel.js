@@ -16,11 +16,22 @@ export default class {
         }
     }
 
+    set action(action) {
+        this._action = action
+    }
+
     /**
      * Return the current state
      */
     get state() {
         return this._state;
+    }
+
+    /**
+     * Return the current state
+     */
+    get action() {
+        return this._action;
     }
 
     /**

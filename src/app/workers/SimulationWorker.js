@@ -12,13 +12,21 @@ import Monster      from '../models/objects/Monster';
 
 class Simulation {
 
+    get localPlayer() {
+        return this._localPlayer;
+    }
+
+    set localPlayer(p) {
+        this._localPlayer = p;
+    }
+
     /**
      * Sets the state of a model
      */
-    setState(model, state) {
+    setState(model, data) {
         try {
-            model.state = state;
-            this.outboundMessages.push(new Message(model.stateMessage, model.state));
+            model.state = data.state || data;
+            this.outboundMessages.push(new Message(0, model.stateMessage, data));
         } catch (err) {
             Logger.err(err);
         }
@@ -36,6 +44,8 @@ class Simulation {
         this.players = new Map();
         this.game    = new Game();
         this.setState(this.game, "lobby");
+
+
     }
 
     /**
@@ -48,16 +58,67 @@ class Simulation {
 
         // Process all messages that have come in since last tick
         for(let message of messages) {
+            Logger.debug("Procesing message:");
+            Logger.log(message);
+            let from      = message.from;
             let eventName = message.event;
             let data      = message.data;
 
             // Decide what to do with message
             switch(eventName) {
                 case "game-host":
-                    this.setState(this.game, "lobby");
+                    this.rng = new Math.seedrandom();
+                    let playerMessage = new Message(0, "player-join-local", {
+                        "name": message.data.name,
+                        "id": message.data.id
+                    });
+                    let p = new Player(data.name, data.id);
+                    this.localPlayer = p;
+                    this.players.set(data.id, p);
+                    this.queueMessage(playerMessage);
+                    break;
+                case "player-join-remote":
+                    this.players.set(data.id, new Player(data.name, data.id, data.job ? data.job.name : 0));
+                    for(let player of this.players.values()) {
+                        this.queueMessage(new Message(0, "player-join-remote", {
+                            name: player.name,
+                            id: player.id,
+                            job: player.job ? player.job.name : 0
+                        }));
+                        this.setState(player, {
+                            "id": player.id,
+                            "state": "idle"
+                        });
+                    }
+                    break;
+                case "player-job":
+                    // Check to make sure its valid
+                    if(from === 0 || from === data.id) {
+                        let player = this.players.get(data.id);
+                        if(player && !(player.job && player.job.name === data.job)) {
+                            player.job = data.job;
+                            this.queueMessage(message);
+                        }
+                    }
+                    break;
+                case "player-state":
+                    if(from === 0 || from === data.id) {
+                        let player = this.players.get(data.id);
+                        if(player && player.state !== data.state) {
+                            if(!(this.game.state === "lobby" && data.state === "ready" && !player.job))
+                                this.setState(player, data);
+                        }
+                    }
+                    break;
+                case "player-action":
+                    if(from === 0 || from === data.id) {
+                        let player = this.players.get(data.id);
+                        this.setPlayerAction(player, data);
+                    }
+                    break;
                 case "game-start":
                     this.rng = seedrandom(data.seed || "");
-                    this.queueMessage(new Message("game-create", 1));
+                    this.queueMessage(new Message(0, "game-create", 1));
                     break;
             }
         }
@@ -73,6 +134,8 @@ class Simulation {
 
         // Do we need to broadcast tick?
         if(this.outboundMessages.length) {
+            Logger.debug("Simulation send messages");
+            Logger.log(this.outboundMessages);
             self.postMessage(this.outboundMessages);
             this.outboundMessages = [];
         }
@@ -86,13 +149,34 @@ class Simulation {
 
         // Check if all players are ready
         for(let player of this.players.values())
-            gameReady &= player.ready;
+            gameReady &= player.state === "ready";
 
         // If all players are ready change the game state
-        if(gameReady && false) {
-            this.setState(this.game, "playing");
+        if(gameReady) {
             this.room = this.createRoom();
-            this.queueMessages.push(new Message("room-create", this.room.type));
+            this.queueMessage(new Message(0, "room-create", this.room.type));
+            this.setState(this.game, "playing");
+
+            let xPos = 13.5;
+            let yPos = 2;
+            for(let player of this.players.values()) {
+                this.queueMessage(new Message(0, "player-set", {
+                    "id": player.id,
+                    "keys": [
+                        "xPos",
+                        "yPos"
+                    ],
+                    "values": [
+                        (player.job.possition === "back") ? xPos - 1 : xPos,
+                        yPos
+                    ]
+                }));
+                this.setState(player, {
+                    "state": "idle",
+                    "id": player.id
+                });
+                yPos++;
+            }
         }
     }
 
@@ -100,7 +184,39 @@ class Simulation {
      * Game logic for when playing
      */
     playingTick() {
+        if(this.room.state === "idle") {
+            let partyReady = true;
 
+            // Check if all players are ready
+            for(let player of this.players.values())
+                partyReady &= player.action === "ready";
+
+            if(partyReady) {
+                this.setState(this.room, "moving");
+                this.room.steps = 0;
+                for(let player of this.players.values())
+                    this.setState(player, {
+                        "state": "walking",
+                        "id" : player.id
+                    });
+            }
+        } else if(this.room.state === "moving") {
+            this.room.steps++;
+            if(this.room.steps >= 100) {
+                this.room.steps = 0;
+                this.setState(this.room, "idle");
+                for(let player of this.players.values()) {
+                    this.setPlayerAction(player, {
+                        "action": "",
+                        "id" : player.id
+                    });
+                    this.setState(player, {
+                        "state": "idle",
+                        "id" : player.id
+                    });
+                }
+            }
+        }
     }
 
     /**
@@ -112,17 +228,31 @@ class Simulation {
     }
 
     /**
+     * Helper to create a room based on RNG
+     */
+    setPlayerAction(player, data) {
+        if(this.game.state !== "playing") return;
+
+        if(player.action !== data.action) {
+            player.action = data.action;
+            this.queueMessage(new Message(0, "player-action", data));
+        }
+    }
+
+    /**
      * Add message to the outbound queue
      */
     queueMessage(message) {
-        this.outboundMessages.push(message.serialize());
+        this.outboundMessages.push(message);
     }
 
     /**
      * Procces incoming message
      */
     onMessage(message) {
-        let decodedMessage = new Message(message.data);
+        Logger.debug("Simulation recieved message from Client");
+        let decodedMessage = message.data;
+        Logger.log(decodedMessage);
         this.messageStack.push(decodedMessage);
     }
 
