@@ -1,19 +1,20 @@
-import Message from "./Message";
-import Logger  from "./Logger";
+import Message  from "./Message";
+import Logger   from "./Logger";
 
-import Game from "../models/Game";
-import Player from "../models/objects/Player";
+import Game     from "../models/Game";
+import Player   from "../models/objects/Player";
 import MainMenu from "../models/objects/MainMenu";
-import Lobby from "../models/objects/Lobby";
-import Room from "../models/objects/Room";
-import Ui from "../models/objects/Ui";
+import Lobby    from "../models/objects/Lobby";
+import Room     from "../models/objects/Room";
+import Ui       from "../models/objects/Ui";
 
 export default class {
-    get mainMenu() {return this._mainMenu}
-    get lobby() {return this._lobby}
-    get game() {return this._game}
-    get players() {return this._players}
-    get ui() {return this._ui}
+    get mainMenu()      {return this._mainMenu}
+    get lobby()         {return this._lobby}
+    get game()          {return this._game}
+    get players()       {return this._players}
+    get localPlayer()   {return this._localPlayer}
+    get ui()            {return this._ui}
 
     constructor(dispatcher) {
         this._mainMenu = new MainMenu();
