@@ -204,7 +204,7 @@ class Simulation {
             this.room.steps++;
             if(this.room.steps >= 100) {
                 this.room.steps = 0;
-                this.setState(this.room, "idle");
+                this.setState(this.room, "battle");
                 for(let player of this.players.values()) {
                     this.setPlayerAction(player, {
                         "action": "",

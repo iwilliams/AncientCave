@@ -45,7 +45,7 @@ export default class extends EventEmitter {
         dispatcher.onmessage = this.handleMessage.bind(this);
         this._dataStore = dataStore;
 
-        //this._debugView = new DebugView(game);
+        this._debugView = new DebugView(this._dataStore);
 
         this._inputService = new InputService();
         this._mobileInputService = new MobileInputService();
@@ -160,7 +160,7 @@ export default class extends EventEmitter {
             view.render(this._ctx, frame);
         }
 
-        //this._debugView.render(this._ctx, frame, this._fps);
+        this._debugView.render(this._ctx, frame, this._fps);
     }
 
     /**

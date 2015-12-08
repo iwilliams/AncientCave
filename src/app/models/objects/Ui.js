@@ -18,14 +18,14 @@ export default class extends BaseModel {
             "defend"
         ];
 
-        this._roomOptions = [
+        this._idleOptions = [
             "ready",
             "ability",
             "item",
             "manage"
         ];
 
-        this._currentOptions = this._roomOptions;
+        this._currentOptions = this._idleOptions;
     }
 
     get currentOptions() {
@@ -37,6 +37,6 @@ export default class extends BaseModel {
     }
 
     setIdleOptions() {
-        this._currentOptions = this._roomOptions;
+        this._currentOptions = this._idleOptions;
     }
 }

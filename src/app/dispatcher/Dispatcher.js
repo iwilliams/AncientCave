@@ -96,7 +96,7 @@ export default class extends EventEmitter {
                 if(this._networkService) {
                     this._networkService.sendMessages([message]);
                 }
-                //this.postMessage(message);
+                ////this.postMessage(message);
             }
         }
     }

@@ -233,27 +233,11 @@ export default class extends ObjectView {
         if(this._view._dataStore._localPlayer.state === "idle") {
             let currentOption = this._ui.currentOptions[this._selectedOptionIndex];
 
-            //let action = Immutable.Map({
-                //"cycle": this._view._game.localPlayer.actionCycle,
-                //"action": this._ui.currentOptions[this._selectedOptionIndex],
-                //"target": 0
-            //});
-            //
             let message = new Message(0, "player-action", {
                 "id": this._view._dataStore._localPlayer.id,
                 "action": this._ui.currentOptions[this._selectedOptionIndex],
             });
             this._view.postMessage(message);
-
-            //if(!Immutable.is(action, this._view._game.localPlayer.currentAction)) {
-                //let message = {
-                    //"event": "player-action",
-                    //"from": this._view._game.localPlayer.id,
-                    //"data": action
-                //}
-
-                //this._view.postMessage(message);
-            //}
         }
     }
 }

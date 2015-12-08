@@ -13,6 +13,7 @@ export default class {
     get lobby() {return this._lobby}
     get game() {return this._game}
     get players() {return this._players}
+    get ui() {return this._ui}
 
     constructor(dispatcher) {
         this._mainMenu = new MainMenu();
@@ -92,6 +93,10 @@ export default class {
                 break;
             case "room-state":
                 this.room.state = data;
+                if(this.room.state === "battle")
+                    this.ui.setBattleOptions();
+                else if(this.room.state === "idle")
+                    this.ui.setIdleOptions();
                 break;
             default:
                 break;
