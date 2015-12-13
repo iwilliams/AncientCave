@@ -18,6 +18,10 @@ import UiView       from './UiView';
 import DebugView    from './DebugView';
 
 export default class extends EventEmitter {
+    get dataStore() {
+        return this._dataStore;
+    }
+
     constructor(dispatcher) {
         super();
 
@@ -115,6 +119,13 @@ export default class extends EventEmitter {
                 break;
             case "room-create": {
                 this._roomView = new RoomView(this._dataStore.room);
+                break;
+            }
+            case "room-state": {
+                if (data === "battle") {
+                    this._soundService.stop("dungeon-theme");
+                    this._soundService.play("combat-theme", true);
+                }
             }
         }
     }

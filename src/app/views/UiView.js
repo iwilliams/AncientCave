@@ -89,7 +89,8 @@ export default class extends ObjectView {
 
         let xPos = Config.TILE_SIZE*1.2;
 
-        if(this._view._dataStore._localPlayer.state === "idle") {
+        if(this._view.dataStore.localPlayer.state === "idle"
+                || this._view.dataStore.localPlayer.state === "cooldown") {
             // Draw Info
             ctx.fillText(...[
                 `${this._selectedOptionIndex == 0 ? ">" : ""}` + this._ui.currentOptions[0],
@@ -196,7 +197,8 @@ export default class extends ObjectView {
     }
 
     up() {
-        if(this._view._dataStore._localPlayer.state === "idle") {
+        if(this._view.dataStore.localPlayer.state === "idle" ||
+                this._view.dataStore.localPlayer.state === "cooldown") {
             if(this._selectedOptionIndex == 0)
                 this._selectedOptionIndex = 2;
             else if (this._selectedOptionIndex == 1)
@@ -213,7 +215,8 @@ export default class extends ObjectView {
     }
 
     left() {
-        if(this._view._dataStore._localPlayer.state === "idle") {
+        if(this._view.dataStore.localPlayer.state === "idle" ||
+                this._view.dataStore.localPlayer.state === "cooldown") {
             if(this._selectedOptionIndex == 0)
                 this._selectedOptionIndex = 1;
             else if (this._selectedOptionIndex == 1)
@@ -230,7 +233,8 @@ export default class extends ObjectView {
     }
 
     confirm() {
-        if(this._view._dataStore._localPlayer.state === "idle") {
+        if(this._view.dataStore.localPlayer.state === "idle" ||
+                this._view.dataStore.localPlayer.state === "cooldown") {
             let currentOption = this._ui.currentOptions[this._selectedOptionIndex];
 
             let message = new Message(0, "player-action", {

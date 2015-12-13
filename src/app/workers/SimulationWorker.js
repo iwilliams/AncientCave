@@ -39,13 +39,6 @@ class Simulation {
         this.counter = 0;
         this.messageStack = [];
         this.outboundMessages = [];
-
-        // Initialize basic models
-        this.players = new Map();
-        this.game    = new Game();
-        this.setState(this.game, "lobby");
-
-
     }
 
     /**
@@ -67,6 +60,10 @@ class Simulation {
             // Decide what to do with message
             switch(eventName) {
                 case "game-host":
+                    // Initialize basic models
+                    this.players = new Map();
+                    this.game    = new Game();
+                    this.setState(this.game, "lobby");
                     this.rng = new Math.seedrandom();
                     let playerMessage = new Message(0, "player-join-local", {
                         "name": message.data.name,
@@ -204,17 +201,7 @@ class Simulation {
             this.room.steps++;
             if(this.room.steps >= 100) {
                 this.room.steps = 0;
-                this.setState(this.room, "battle");
-                for(let player of this.players.values()) {
-                    this.setPlayerAction(player, {
-                        "action": "",
-                        "id" : player.id
-                    });
-                    this.setState(player, {
-                        "state": "idle",
-                        "id" : player.id
-                    });
-                }
+                this.startBattle();
             }
         }
     }
@@ -237,6 +224,31 @@ class Simulation {
             player.action = data.action;
             this.queueMessage(new Message(0, "player-action", data));
         }
+    }
+
+    /**
+     * Helper to set everything up for battle
+     */
+    startBattle() {
+        this.setState(this.room, "battle");
+        for(let player of this.players.values()) {
+            this.setPlayerAction(player, {
+                "action": "",
+                "id" : player.id
+            });
+            this.startCooldown(player);
+        }
+    }
+
+    /**
+     * Helper to start player cooldown
+     */
+    startCooldown(player) {
+        this.setState(player, {
+            "state": "cooldown",
+            "id" : player.id
+        });
+        player.cooldown = 0;
     }
 
     /**

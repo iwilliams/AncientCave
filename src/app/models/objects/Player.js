@@ -55,7 +55,7 @@ JOBS.set("ninja", {
 let STATES = [
     "idle",
     "ready",
-    "resting",
+    "cooldown",
     "walking",
     "attacking"
 ];
