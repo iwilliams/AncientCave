@@ -74,6 +74,10 @@ export default class {
                     if(!(this.game.state === "lobby" && data.state === "ready" && !player.job))
                         player.state = data.state;
                 }
+
+                if(player.state === "cooldown") {
+                    player.cooldown = 0;
+                }
                 break;
             case "player-set":
                 var player = this.players.get(data.id);

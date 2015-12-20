@@ -203,6 +203,27 @@ class Simulation {
                 this.room.steps = 0;
                 this.startBattle();
             }
+        } else if(this.room.state === "battle") {
+            for(let player of this.players.values()) {
+                if(player.state === "cooldown") {
+                    player.cooldown++;
+                    this.queueMessage(new Message(0, "player-set", {
+                        "id": player.id,
+                        "keys": [
+                            "cooldown"
+                        ],
+                        "values": [
+                            player.cooldown
+                        ]
+                    }));
+                    if(player.cooldown === player.job.cooldown) {
+                        this.setState(player, {
+                            "state": "idle",
+                            "id": player.id
+                        });
+                    }
+                }
+            }
         }
     }
 
