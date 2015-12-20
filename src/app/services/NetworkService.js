@@ -30,8 +30,10 @@ export default class extends EventEmitter {
         if(id) this._id = id;
         // Initialize the peer connection
         this._peer = new Peer(this._id, {
-            key: Config.API_KEY,
-            debug: 3
+            //key: Config.API_KEY,
+            debug: 3,
+            host: 'localhost',
+            port: 9000
         });
 
         return new Promise((res, rej)=>{
