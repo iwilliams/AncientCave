@@ -1,108 +1,329 @@
- //var activeLoops = [];
+// Utils
+import Config       from '../../Config';
+import Message      from '../services/Message';
+import Logger       from '../services/Logger';
+import seedrandom   from '../services/Rng';
 
-//var getLoopId = (function() {
-	//var staticLoopId = 0;
-	//return function() {
-		//return staticLoopId++;
-	//}
-//})();
+// Models
+import Game         from '../models/Game';
+import Room         from '../models/objects/Room';
+import Player       from '../models/objects/Player';
+import Monster      from '../models/objects/Monster';
 
-//let setGameLoop = function(update, tickLengthMs) {
+class Simulation {
 
-	//var loopId = getLoopId();
-	//activeLoops.push(loopId);
+    get localPlayer() {
+        return this._localPlayer;
+    }
 
-	/**
-	 * Length of a tick in milliseconds. The denominator is your desired framerate.
-	 * e.g. 1000 / 20 = 20 fps, 1000 / 60 = 60 fps
-	 */
-	//tickLengthMs = tickLengthMs || 1000 / 30;
+    set localPlayer(p) {
+        this._localPlayer = p;
+    }
 
-	//[> gameLoop related variables <]
-	//// timestamp of each loop
-	//var previousTick = Date.now();
-	//// number of times gameLoop gets called
-	//var actualTicks = 0;
+    /**
+     * Sets the state of a model
+     */
+    setState(model, data) {
+        try {
+            model.state = data.state || data;
+            this.outboundMessages.push(new Message(0, model.stateMessage, data));
+        } catch (err) {
+            Logger.err(err);
+        }
+    }
 
-	//var gameLoop = function() {
-		//var now = Date.now();
+    constructor() {
+        this.then = Date.now();
+        this.interval = 1000/30;
+        this.first = this.then;
+        this.counter = 0;
+        this.messageStack = [];
+        this.outboundMessages = [];
+    }
 
-		//actualTicks++
-		//if (previousTick + tickLengthMs <= now) {
-			//var delta = (now - previousTick) / 1000;
-			//previousTick = now;
+    /**
+     * Game Loop Logic
+     */
+    tick() {
+        // Get current messages and then reset the stack
+        let messages = this.messageStack;
+        this.messageStack = [];
 
-			//// actually run user code
-			//update(delta);
+        // Process all messages that have come in since last tick
+        for(let message of messages) {
+            Logger.debug("Procesing message:");
+            Logger.log(message);
+            let from      = message.from;
+            let eventName = message.event;
+            let data      = message.data;
 
-			//actualTicks = 0;
-		//}
+            // Decide what to do with message
+            switch(eventName) {
+                case "game-host":
+                    // Initialize basic models
+                    this.players = new Map();
+                    this.game    = new Game();
+                    this.setState(this.game, "lobby");
+                    this.rng = new Math.seedrandom();
+                    let playerMessage = new Message(0, "player-join-local", {
+                        "name": message.data.name,
+                        "id": message.data.id
+                    });
+                    let p = new Player(data.name, data.id);
+                    this.localPlayer = p;
+                    this.players.set(data.id, p);
+                    this.queueMessage(playerMessage);
+                    break;
+                case "player-join-remote":
+                    this.players.set(data.id, new Player(data.name, data.id, data.job ? data.job.name : 0));
+                    for(let player of this.players.values()) {
+                        this.queueMessage(new Message(0, "player-join-remote", {
+                            name: player.name,
+                            id: player.id,
+                            job: player.job ? player.job.name : 0
+                        }));
+                        this.setState(player, {
+                            "id": player.id,
+                            "state": "idle"
+                        });
+                    }
+                    break;
+                case "player-job":
+                    // Check to make sure its valid
+                    if(from === 0 || from === data.id) {
+                        let player = this.players.get(data.id);
+                        if(player && !(player.job && player.job.name === data.job)) {
+                            player.job = data.job;
+                            this.queueMessage(message);
+                        }
+                    }
+                    break;
+                case "player-state":
+                    if(from === 0 || from === data.id) {
+                        let player = this.players.get(data.id);
+                        if(player && player.state !== data.state) {
+                            if(!(this.game.state === "lobby" && data.state === "ready" && !player.job))
+                                this.setState(player, data);
+                        }
+                    }
+                    break;
+                case "player-action":
+                    if(from === 0 || from === data.id) {
+                        let player = this.players.get(data.id);
+                        this.setPlayerAction(player, data);
+                    }
+                    break;
+                case "game-start":
+                    this.rng = seedrandom(data.seed || "");
+                    this.queueMessage(new Message(0, "game-create", 1));
+                    break;
+            }
+        }
 
-		//// do not go on to renew loop if no longer active
-		//if (activeLoops.indexOf(loopId) === -1) {
-			//return;
-		//}
+        switch(this.game.state) {
+            case "lobby":
+                this.lobbyTick();
+                break;
+            case "playing":
+                this.playingTick();
+                break;
+        }
 
-		//// otherwise renew loop in 16ms multiples, or immediately
-		//if (Date.now() - previousTick < tickLengthMs - 16) {
-			//setTimeout(gameLoop, 16);
-		//} else {
-			//setTimeout(gameLoop, 1);
-		//}
-	//}
+        // Do we need to broadcast tick?
+        if(this.outboundMessages.length) {
+            Logger.debug("Simulation send messages");
+            Logger.log(this.outboundMessages);
+            self.postMessage(this.outboundMessages);
+            this.outboundMessages = [];
+        }
+    }
 
-	//// begin the loop!
-	//gameLoop();
+    /**
+     * Game logic for when in lobby
+     */
+    lobbyTick() {
+        let gameReady = true;
 
-	//return loopId;
-//};
+        // Check if all players are ready
+        for(let player of this.players.values())
+            gameReady &= player.state === "ready";
 
-//let clearGameLoop = function(loopId) {
-	//// remove the loop id from the active loops
-	//activeLoops.splice(activeLoops.indexOf(loopId), 1);
-//};
+        // If all players are ready change the game state
+        if(gameReady) {
+            this.room = this.createRoom();
+            this.queueMessage(new Message(0, "room-create", this.room.type));
+            this.setState(this.game, "playing");
 
-//let loop = setGameLoop(()=>{
-    //self.postMessage(1);
-//}, 1000/30);
+            let xPos = 13.5;
+            let yPos = 2;
+            for(let player of this.players.values()) {
+                this.queueMessage(new Message(0, "player-set", {
+                    "id": player.id,
+                    "keys": [
+                        "xPos",
+                        "yPos"
+                    ],
+                    "values": [
+                        (player.job.possition === "back") ? xPos - 1 : xPos,
+                        yPos
+                    ]
+                }));
+                this.setState(player, {
+                    "state": "idle",
+                    "id": player.id
+                });
+                yPos++;
+            }
+        }
+    }
 
-//let interval = setInterval(()=>{
-    //self.postMessage(1);
-//}, 1000/30);
+    /**
+     * Game logic for when playing
+     */
+    playingTick() {
+        if(this.room.state === "idle") {
+            let partyReady = true;
 
-let then = Date.now();
-let interval = 1000/30;
-let first = then;
-let counter = 0;
+            // Check if all players are ready
+            for(let player of this.players.values())
+                partyReady &= player.action === "ready";
 
-function loop() {
+            if(partyReady) {
+                this.setState(this.room, "moving");
+                this.room.steps = 0;
+                for(let player of this.players.values())
+                    this.setState(player, {
+                        "state": "walking",
+                        "id" : player.id
+                    });
+            }
+        } else if(this.room.state === "moving") {
+            this.room.steps++;
+            if(this.room.steps >= 100) {
+                this.room.steps = 0;
+                this.startBattle();
+            }
+        } else if(this.room.state === "battle") {
+            for(let player of this.players.values()) {
+                if(player.state === "cooldown") {
+                    player.cooldown++;
+                    this.queueMessage(new Message(0, "player-set", {
+                        "id": player.id,
+                        "keys": [
+                            "cooldown"
+                        ],
+                        "values": [
+                            player.cooldown
+                        ]
+                    }));
+                    if(player.cooldown === player.job.cooldown) {
+                        this.setState(player, {
+                            "state": "idle",
+                            "id": player.id
+                        });
+                    }
+                }
+            }
+        }
+    }
 
-    let now = Date.now();
-    let delta = now - then;
+    /**
+     * Helper to create a room based on RNG
+     */
+    createRoom() {
+        let type = Room.TYPES[parseInt(this.rng.quick()*Room.TYPES.length)];
+        return new Room(type);
+    }
 
-    // If the fps interval is correct
-    if (delta > interval) {
-        // Calculate time since last frame
-        then = now - (delta % interval);
+    /**
+     * Helper to create a room based on RNG
+     */
+    setPlayerAction(player, data) {
+        if(this.game.state !== "playing") return;
 
-        // Set up Rendering
-        let _frame = _frame || 1;
-        _frame = (_frame%30) ? _frame : 1;
+        if(player.action !== data.action) {
+            player.action = data.action;
+            this.queueMessage(new Message(0, "player-action", data));
+        }
+    }
 
-        // Render game
-        self.postMessage(1);
+    /**
+     * Helper to set everything up for battle
+     */
+    startBattle() {
+        this.setState(this.room, "battle");
+        for(let player of this.players.values()) {
+            this.setPlayerAction(player, {
+                "action": "",
+                "id" : player.id
+            });
+            this.startCooldown(player);
+        }
+    }
 
-        // Calculate next render cycle
-        let time_el = (then - first)/1000;
-        ++this.counter;
-        let _fps = parseInt(counter/time_el);
+    /**
+     * Helper to start player cooldown
+     */
+    startCooldown(player) {
+        this.setState(player, {
+            "state": "cooldown",
+            "id" : player.id
+        });
+        player.cooldown = 0;
+    }
 
-        // Increment Frame
-        _frame++;
-        //loop();
-    } else {
-        //setTimeout(loop, 1);
+    /**
+     * Add message to the outbound queue
+     */
+    queueMessage(message) {
+        this.outboundMessages.push(message);
+    }
+
+    /**
+     * Procces incoming message
+     */
+    onMessage(message) {
+        Logger.debug("Simulation recieved message from Client");
+        let decodedMessage = message.data;
+        Logger.log(decodedMessage);
+        this.messageStack.push(decodedMessage);
+    }
+
+    /**
+     * Run closest to the FPS as possible
+     */
+    loop() {
+        let now = Date.now();
+        let delta = now - this.then;
+
+        // If the fps interval is correct
+        if (delta > this.interval) {
+            // Calculate time since last frame
+            this.then = now - (delta % this.interval);
+
+            this.tick();
+
+            // Calculate next render cycle
+            let time_el = (this.then - this.first)/1000;
+            ++this.counter;
+            //let _fps = parseInt(counter/time_el);
+
+            // Increment Frame
+            this.loop();
+        } else {
+            setTimeout(this.loop.bind(this), 1);
+        }
     }
 }
-let intervalTimer = setInterval(loop, 13);
-//loop();
+
+// Initialize a new simulation
+let simulation = new Simulation();
+
+// Attach I/O
+onmessage = simulation.onMessage.bind(simulation);
+simulation.postMessage = postMessage;
+
+// Start the simulation
+simulation.loop();
+
+self.simulation = simulation;

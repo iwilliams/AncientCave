@@ -1,16 +1,13 @@
 import Config          from '../../Config';
 import ObjectView      from './ObjectView';
 import Logger          from '../services/Logger';
+import Message          from '../services/Message';
 
 export default class extends ObjectView {
-    constructor(ui, players, view) {
+    constructor(ui, view) {
         super();
         this._ui         = ui;
         this._view       = view;
-        this._players    = players;
-
-        Logger.debug("UI PLAYERS");
-        Logger.log(this._players);
 
         this._tileHeight = 2;
 
@@ -92,7 +89,8 @@ export default class extends ObjectView {
 
         let xPos = Config.TILE_SIZE*1.2;
 
-        if(this._view._game.localPlayer.currentState === "idle") {
+        if(this._view.dataStore.localPlayer.state === "idle"
+                || this._view.dataStore.localPlayer.state === "cooldown") {
             // Draw Info
             ctx.fillText(...[
                 `${this._selectedOptionIndex == 0 ? ">" : ""}` + this._ui.currentOptions[0],
@@ -122,8 +120,9 @@ export default class extends ObjectView {
         xPos = Config.TILE_SIZE*5;
         yPos = Config.TILE_SIZE*(Config.TILE_Y-this._tileHeight);
 
+        let players = this._view._dataStore.players.values();
         // Render Player Info
-        for(let player of this._players.values()) {
+        for(let player of players) {
             yPos += fontSize*2;
 
             ctx.fillStyle   = "#ffffff";
@@ -198,7 +197,8 @@ export default class extends ObjectView {
     }
 
     up() {
-        if(this._view._game.localPlayer.currentState === "idle") {
+        if(this._view.dataStore.localPlayer.state === "idle" ||
+                this._view.dataStore.localPlayer.state === "cooldown") {
             if(this._selectedOptionIndex == 0)
                 this._selectedOptionIndex = 2;
             else if (this._selectedOptionIndex == 1)
@@ -215,7 +215,8 @@ export default class extends ObjectView {
     }
 
     left() {
-        if(this._view._game.localPlayer.currentState === "idle") {
+        if(this._view.dataStore.localPlayer.state === "idle" ||
+                this._view.dataStore.localPlayer.state === "cooldown") {
             if(this._selectedOptionIndex == 0)
                 this._selectedOptionIndex = 1;
             else if (this._selectedOptionIndex == 1)
@@ -232,24 +233,15 @@ export default class extends ObjectView {
     }
 
     confirm() {
-        if(this._view._game.localPlayer.currentState === "idle") {
+        if(this._view.dataStore.localPlayer.state === "idle" ||
+                this._view.dataStore.localPlayer.state === "cooldown") {
             let currentOption = this._ui.currentOptions[this._selectedOptionIndex];
 
-            let action = Immutable.Map({
-                "cycle": this._view._game.localPlayer.actionCycle,
+            let message = new Message(0, "player-action", {
+                "id": this._view._dataStore._localPlayer.id,
                 "action": this._ui.currentOptions[this._selectedOptionIndex],
-                "target": 0
             });
-
-            if(!Immutable.is(action, this._view._game.localPlayer.currentAction)) {
-                let message = {
-                    "event": "player-action",
-                    "from": this._view._game.localPlayer.id,
-                    "data": action
-                }
-
-                this._view.postMessage(message);
-            }
+            this._view.postMessage(message);
         }
     }
 }

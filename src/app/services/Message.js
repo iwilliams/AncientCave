@@ -1,9 +1,7 @@
-let events = [
-    "player-state",
-    "player-action",
-    "option-select"
-];
-
-export default class {
-
-}
+export default function(from, event, data) {
+    return {
+        from: from,
+        event: event,
+        data: data
+    }
+};

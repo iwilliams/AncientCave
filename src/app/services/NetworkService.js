@@ -1,31 +1,9 @@
 import Config       from '../../Config';
 import EventEmitter from '../mixins/EventEmitter';
 import Logger       from './Logger';
-
-let events = [
-    "peer-connect",
-    "player-ready",
-    "player-job",
-    "player-state",
-    "player-action",
-    "option-select",
-];
+import Message      from './Message';
 
 export default class extends EventEmitter {
-
-    createMessage(eventName, data) {
-        if(events.indexOf(eventName) >= 0) {
-            return [events.indexOf(eventName), data];
-        }
-    }
-
-    decodeMessage(id, message) {
-        return {
-            "from": id,
-            "event": events[message[0]],
-            "data": message[1]
-        }
-    }
 
     constructor(name, host) {
         super();
@@ -48,9 +26,8 @@ export default class extends EventEmitter {
      * @return Promise
      *
      */
-    init(rng) {
-        if(rng) this._rng = rng;
-
+    init(id) {
+        if(id) this._id = id;
         // Initialize the peer connection
         this._peer = new Peer(this._id, {
             key: Config.API_KEY,
@@ -79,11 +56,11 @@ export default class extends EventEmitter {
                         Logger.network("Peer has connected");
                         Logger.log(connection);
                         let peer = this.addPeer(connection);
-                        this.connectToPeer(peer);
+                        peer.connection.send(1);
                     });
                 });
 
-                res();
+                res(this._id);
             });
         });
     }
@@ -95,8 +72,7 @@ export default class extends EventEmitter {
         this._peers.set(connection.peer, peer);
 
         connection.on('data', (data)=>{
-            let message = this.decodeMessage(connection.peer, data);
-            this.handleMessage(message);
+            this.handleMessages(data);
         });
 
         connection.on('close', ()=>{
@@ -106,37 +82,7 @@ export default class extends EventEmitter {
         return peer;
     }
 
-    connectToPeer(peer) {
-
-        let data = {
-            "name": this._name,
-            "job": this._selectedJob || undefined
-        }
-
-        if(this._rng)
-            data.rng = this._rng.state();
-
-        // Build list of peers
-        let peers = [];
-        for(let peer of this._peers.keys()) {
-            peers.push(peer);
-        }
-        data.peers = peers;
-
-        // Create a message
-        let message = this.createMessage("peer-connect", data);
-
-        Logger.network(`Sending peer-connect message to peer with id ${peer.id}`);
-        Logger.log(message);
-        peer.connection.send(message);
-        peer.hasConnected = true;
-    }
-
     removePeer(peer) {
-        this.postMessage({
-            "event": "player-remove",
-            "data": peer.connection.peer
-        });
         this._peers.delete(peer.connection.peer);
     }
 
@@ -147,12 +93,19 @@ export default class extends EventEmitter {
     /**
      * Send message to all peers
      */
-    _sendMessage(message) {
-        Logger.network("Send message to peers");
-        Logger.log(message);
+    sendMessages(messages) {
         if(this._peers) {
             for(let peer of this._peers.values()) {
-                peer.connection.send(message);
+                // If this message has a to, make sure this peers needs the message
+                let messagesToSend = [];
+                for(let message of messages) {
+                    message.from = this._id;
+                    if(!message.to || messsage.to === peer.connection.peer)
+                        messagesToSend.push(message);
+                }
+                Logger.network("Send messages to peers");
+                Logger.log(messagesToSend);
+                peer.connection.send(messagesToSend);
             }
         }
     }
@@ -160,47 +113,22 @@ export default class extends EventEmitter {
     /**
      * Handle incoming message
      */
-    handleMessage(message) {
-        Logger.network(`Message recieved from peer with id ${message.from}`);
-        Logger.log(message);
+    handleMessages(messages) {
+        Logger.network(`Network Service recieved message from peer with id ${messages.from}`);
+        Logger.log(messages);
 
-        // Grab data from message
-        let data = message.data;
-
-        if(message.event === "peer-connect") {
-            // See if this peer knows about any other peers and add if we don't know them
-            for(let peer of data.peers) {
-                if(!this._peers.get(peer) && peer !== this._id) {
-                    Logger.network(`Adding Peer with id ${peer}`);
-                    this.addPeer(this._peer.connect(peer, {
-                        "reliable": true
-                    }));
-                }
-            }
-
-            // See if we have already connected to this peer
-            if(this._peers.get(message.from) && !this._peers.get(message.from).hasConnected) {
-                this.connectToPeer(this._peers.get(message.from));
-            }
-
-            if(data.rng && !this._rng) {
-                this._rng = new Math.seedrandom("", {state: data.rng});
-                this.postMessage({
-                    "event": "rng-set",
-                    "data": this._rng
-                });
-            }
-
-            message.event = "add-player";
+        if(messages === 1) {
+            let m = new Message(0, "player-join-remote", {"name": this._name, "id": this._id});
+            this.postMessage([
+                    new Message(0, "game-state", "lobby"),
+                    new Message(0, "player-join-local", {"name": this._name, "id": this._id})
+            ]);
+            this.sendMessages([m]);
+        } else {
+            this.postMessage(messages);
+            //for(let message of messages) {
+                //this.postMessage(message);
+            //}
         }
-
-        this.postMessage(message);
-    }
-
-    broadcastMessage(message) {
-        if(message.event === "player-job") {
-            this._selectedJob = message.data.job;
-        }
-        this._sendMessage(this.createMessage(message.event, message.data));
     }
 }

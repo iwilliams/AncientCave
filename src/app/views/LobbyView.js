@@ -1,5 +1,6 @@
 import ObjectView      from './ObjectView';
 import Utils           from '../services/Utils';
+import Message         from '../services/Message';
 import Config          from '../../Config';
 import ResrouceService from '../services/ResourceService';
 import Player          from '../models/objects/Player';
@@ -16,11 +17,10 @@ let jobDialog = `
 `;
 
 export default class extends ObjectView {
-    constructor(lobby, players, view) {
+    constructor(lobby, view) {
         super(lobby);
         this._lobby = lobby;
         this._view = view;
-        this._players = players;
         this._selectedOptionIndex = 0;
         this._ready = false;
         this._dialogOpen = false;
@@ -62,13 +62,10 @@ export default class extends ObjectView {
             },
             confirm: ()=>{
                 if(jobSelect.value) {
-                    view.postMessage({
-                        "event": "player-job",
-                        "from": this._view._game.localPlayer.id,
-                        "data": {
-                            "job": jobSelect.value,
-                        }
-                    });
+                    view.postMessage(new Message(0, "player-job", {
+                        "job": jobSelect.value,
+                        "id": view._dataStore._localPlayer.id
+                    }));
                     this._dialog.remove();
                 }
             }
@@ -86,7 +83,8 @@ export default class extends ObjectView {
         ctx.fillText("JOB:", 300, yPos);
         ctx.fillText("READY:", 500, yPos);
         ctx.strokeRect(90, 110, 600, 180);
-        for(let player of this._players.values()) {
+
+        for(let player of this._view._dataStore.players.values()) {
             ctx.fillStyle     = "#ffffff";
             yPos += 40;
             ctx.fillText(player.name, 100, yPos);
@@ -96,7 +94,7 @@ export default class extends ObjectView {
                 ctx.fillText(jobName, 300, yPos);
             }
 
-            if(player.currentState == "ready") {
+            if(player.state == "ready") {
                 ctx.fillStyle     = "#00ff00";
                 ctx.fillText("READY", 500, yPos);
             } else {
@@ -145,15 +143,12 @@ export default class extends ObjectView {
                 this._view.postMessage({
                     "event": "leave-game"
                 });
-            } else if(this.selectedOption == "Ready") {
-                this._ready = !this._ready;
-                this._view.postMessage({
-                    "event": "player-state",
-                    "from": this._view._game.localPlayer.id,
-                    "data": {
-                        "state": this._ready ? "ready" : "idle"
-                    }
-                });
+            } else if(this.selectedOption == "Ready" && this._view._dataStore._localPlayer.job) {
+                let state = this._view._dataStore._localPlayer.state === "idle" ? "ready" : "idle";
+                this._view.postMessage(new Message(0, "player-state", {
+                    "state": state,
+                    "id": this._view._dataStore._localPlayer.id
+                }));
             }
         } else {
             this._dialog.confirm();

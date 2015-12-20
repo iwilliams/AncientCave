@@ -5,6 +5,7 @@ import InputService from '../services/KeyboardInputService';
 import MobileInputService from '../services/MobileInputService';
 import Config       from '../../Config';
 import Logger       from '../services/Logger';
+import Message      from '../services/Logger';
 import SoundService from '../services/SoundService';
 
 // Import views
@@ -17,7 +18,11 @@ import UiView       from './UiView';
 import DebugView    from './DebugView';
 
 export default class extends EventEmitter {
-    constructor() {
+    get dataStore() {
+        return this._dataStore;
+    }
+
+    constructor(dispatcher) {
         super();
 
         this._element = document.body;
@@ -27,7 +32,6 @@ export default class extends EventEmitter {
         this._canvas.height = Config.CANVAS_HEIGHT;
 
         this._views = new Set();
-
     }
 
     /**
@@ -41,13 +45,16 @@ export default class extends EventEmitter {
         this._ctx.imageSmoothingEnabled = false;
     }
 
-    init(game) {
-        this._game = game;
+    init(dispatcher, dataStore) {
+        dispatcher.onmessage = this.handleMessage.bind(this);
+        this._dataStore = dataStore;
 
-        this._debugView = new DebugView(game);
+        this._debugView = new DebugView(this._dataStore);
 
         this._inputService = new InputService();
         this._mobileInputService = new MobileInputService();
+        this.registerInputHandlers(this._inputService);
+        this.registerInputHandlers(this._mobileInputService);
 
         this._element.appendChild(this._canvas);
         this._ctx = this._canvas.getContext('2d');
@@ -57,9 +64,70 @@ export default class extends EventEmitter {
         //window.resize = this.resize.bind(this);
         window.addEventListener("resize", this.resize.bind(this));
 
-        this.listenToGameEvents(this._game);
-        this.registerInputHandlers(this._inputService);
-        this.registerInputHandlers(this._mobileInputService);
+        this._mainMenuView = new MainMenuView(dataStore.mainMenu, this);
+
+        this._views.add(this._mainMenuView);
+
+        // Start render loop
+        this.startRender();
+}
+
+    /**
+     * Handle messages from Dispatcher
+     */
+    handleMessage(message) {
+        Logger.debug("View recieved message from Dispatcher");
+        let decodedMessage = message;
+        Logger.log(decodedMessage);
+        let from  = decodedMessage.from;
+        let event = decodedMessage.event;
+        let data  = decodedMessage.data;
+
+        switch(event) {
+            case "game-state":
+                if(data === "lobby") {
+                    this._lobbyView = new LobbyView(dataStore.lobby, this);
+                    this._views = new Set([
+                       this._lobbyView
+                    ]);
+                } else if(data === "playing") {
+                    let resourcePromises = [];
+                    resourcePromises.push(this._roomView.loadResources());
+
+                    this._playerViews = new Map();
+                    for(let player of this._dataStore.players.values()) {
+                        let playerView = new PlayerView(player);
+                        this._playerViews.set(player.id, playerView);
+                        resourcePromises.push(playerView.loadResources());
+                    }
+
+                    this._uiView = new UiView(this._dataStore._ui, this);
+                    resourcePromises.push(this._uiView.loadResources());
+
+                    this._soundService = new SoundService();
+                    resourcePromises.push(this._soundService.loadResources());
+
+                    Promise.all(resourcePromises).then(()=>{
+                        this._views = new Set([
+                           this._roomView,
+                           ...this._playerViews.values(),
+                           this._uiView
+                        ]);
+                        this._soundService.play("dungeon-theme", true);
+                    });
+                }
+                break;
+            case "room-create": {
+                this._roomView = new RoomView(this._dataStore.room);
+                break;
+            }
+            case "room-state": {
+                if (data === "battle") {
+                    this._soundService.stop("dungeon-theme");
+                    this._soundService.play("combat-theme", true);
+                }
+            }
+        }
     }
 
     // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe/
@@ -106,24 +174,9 @@ export default class extends EventEmitter {
         this._debugView.render(this._ctx, frame, this._fps);
     }
 
-    getMainMenuViews() {
-        let views = [];
-
-        if(this._mainMenuView) {
-            views.push(this._mainMenuView);
-        }
-
-        return views;
-    }
-
-    getPlayingViews() {
-        return [
-            this._roomView,
-            ...this._playerViews.values(),
-            this._uiView
-        ];
-    }
-
+    /**
+     * Kick off the render loop
+     */
     startRender() {
         this.then = Date.now();
         this.interval = 1000/Config.FPS;
@@ -132,126 +185,6 @@ export default class extends EventEmitter {
         this._rendering = true;
         window.requestAnimationFrame(this.loop.bind(this));
     }
-    /**
-     * Listen for game events so we can adjust renderer
-     */
-    listenToGameEvents(game) {
-        game.on("game-state", (message)=> {
-            Logger.debug("View Game State Event");
-            Logger.log(message);
-            if(message == "main menu") {
-                // If we aren't rendering then start
-                if(!this._rendering) {
-                    this.startRender();
-                }
-                let mainMenuView = new MainMenuView(game.mainMenu, this);
-                mainMenuView.init().then(()=>{
-                    this._mainMenuView = mainMenuView;
-                    this._views = new Set([this._mainMenuView]);
-                });
-            } else if (message == "lobby") {
-                let lobbyView = new LobbyView(game.lobby, game.players, this);
-                lobbyView.init().then(()=>{
-                    this._lobbyView = lobbyView;
-                    this._views = new Set([this._lobbyView]);
-                });
-            } else if(message == "playing") {
-                // Create a new room view
-                let roomView = new RoomView(game.room);
-                this._roomView = roomView;
-
-                let promises = [
-                    roomView.loadResources()
-                ];
-
-                let views = [];
-
-                // Create all of our player views
-                this._playerViews = new Map();
-                for(let player of game.players.values()) {
-                    let playerView = new PlayerView(player);
-                    promises.push(playerView.loadResources());
-                    views.push(playerView);
-                    this._playerViews.set(player.id, playerView);
-                }
-
-                let uiView = new UiView(game.ui, game.players, this);
-                this._uiView = uiView;
-                promises.push(uiView.loadResources());
-
-                // Load sounds
-                let soundService = new SoundService();
-                this._soundService = soundService;
-                promises.push(soundService.loadResources());
-
-                // After all renderers are ready let the dispatcher know
-                Promise.all(promises).then(()=>{
-                    this._views = [
-                        this._roomView,
-                        ...views,
-                        this._uiView
-                    ];
-                    this._soundService.play("dungeon-theme", true, .3);
-                });
-            }
-        });
-
-        game.on("add-player", (player)=>{
-            if(game.currentState === "loby")
-                this._lobbyView._ready = false;
-        });
-
-        game.on("remove-player", (player)=>{
-            Logger.debug("VIEW REMOVE PLAYER");
-            Logger.debug(player.id);
-            if(this._playerViews) {
-                this._playerViews.delete(player.id);
-                this._views = this.getPlayingViews();
-            }
-        });
-
-        game.on("add-enemy", (enemy)=>{
-            let enemyView = new EnemyView(enemy);
-            enemyView.loadResources().then(()=>{
-                if(this._enemyViews) {
-                    this._enemyViews = [
-                        enemyView,
-                        ...this._enemyViews
-                    ];
-                } else {
-                    this._enemyViews = [enemyView];
-                }
-            });
-        });
-
-        game.on("start-battle", ()=>{
-            this._soundService.stop("dungeon-theme");
-            this._soundService.play("combat-theme", true, .3);
-            this._views = [
-                ...this._views,
-                ...this._enemyViews
-            ];
-        });
-
-        game.on("player-cooldown", (player)=>{
-            if(player.isLocal) {
-                this._soundService.play("cooldown-ready");
-            }
-        });
-
-        game.on("player-attack", (player)=>{
-        });
-
-        game.on("end-battle", ()=>{
-            this._soundService.stop("combat-theme");
-            this._soundService.play("dungeon-theme", true, .3);
-            this._views = [
-                this._roomView,
-                ...this._playerViews.values(),
-                this._uiView
-            ];
-        });
-    }
 
     /**
      * Register input to alter view and see if we need to send envents
@@ -259,7 +192,7 @@ export default class extends EventEmitter {
     registerInputHandlers(input) {
         // Up input
         input.on("up", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._dataStore.game.state;
             switch(gameState) {
                 case "main menu":
                     this._mainMenuView.up();
@@ -273,7 +206,7 @@ export default class extends EventEmitter {
 
         // Down Input
         input.on("down", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._dataStore.game.state;
             switch(gameState) {
                 case "main menu":
                     this._mainMenuView.down();
@@ -287,7 +220,7 @@ export default class extends EventEmitter {
 
         // Left Input
         input.on("left", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._dataStore.game.state;
             switch(gameState) {
                 case "lobby":
                     this._lobbyView.left();
@@ -301,7 +234,7 @@ export default class extends EventEmitter {
 
         // Right Input
         input.on("right", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._dataStore.game.state;
             switch(gameState) {
                 case "lobby":
                     this._lobbyView.right();
@@ -315,7 +248,7 @@ export default class extends EventEmitter {
 
         // Confirm Input
         input.on("confirm", ()=>{
-            let gameState = this._game.currentState;
+            let gameState = this._dataStore.game.state;
             switch(gameState) {
                 case "main menu":
                     this._mainMenuView.confirm(this);

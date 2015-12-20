@@ -1,9 +1,9 @@
 import Config          from '../../Config';
 
 export default class {
-    constructor(game) {
-        this.game = game;
-        this._show = true;
+    constructor(dataStore) {
+        this.dataStore = dataStore;
+        this._show = false;
     }
 
     toggle() {
@@ -25,17 +25,22 @@ export default class {
 
             ctx.fillText("Players:", 20, line);
 
-            for(let player of game.players.values()) {
+            for(let player of dataStore.players.values()) {
                 line += fontSize;
                 ctx.fillText(player.name, 40, line);
                 line += fontSize;
-                ctx.fillText("Action Cycle: " + player.actionCycle, 60, line);
+                ctx.fillText("State: " + player.state, 60, line);
                 line += fontSize;
-                ctx.fillText("Current Action: " + player.currentAction.get("action"), 60, line);
+                ctx.fillText("Action: " + player.action, 60, line);
+            }
+
+            if(dataStore.room) {
+                line = 20 + fontSize;
+                ctx.fillText("Room", 240, line);
                 line += fontSize;
-                ctx.fillText("Next Action: " + (player.nextAction ? player.nextAction.get("action") : "NONE"), 60, line);
+                ctx.fillText("Type: " + dataStore.room.type, 260, line);
                 line += fontSize;
-                ctx.fillText("Current State: " + player.currentState, 60, line);
+                ctx.fillText("State: " + dataStore.room.state, 260, line);
             }
         }
     }

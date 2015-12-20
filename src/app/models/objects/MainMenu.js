@@ -1,6 +1,6 @@
 import BaseModel from '../BaseModel'; // Can't call this Object b/c of conflict xD
 
-export default class extends BaseModel {
+export default class {
     /**
      * Creates a UI window
      *
@@ -10,8 +10,6 @@ export default class extends BaseModel {
      * @param offsetY - % Y offset
      */
     constructor() {
-        super();
-
         this._currentOptions = [
             "Host Game",
             "Join Game"

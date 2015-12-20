@@ -1,5 +1,7 @@
 import ObjectView      from './ObjectView';
 import Utils           from '../services/Utils';
+import Logger          from '../services/Logger';
+import Message         from '../services/Message';
 import Config          from '../../Config';
 import ResrouceService from '../services/ResourceService';
 
@@ -96,16 +98,14 @@ export default class extends ObjectView {
             remove: function() {
                 this.element.remove()
             },
-            confirm: function() {
+            confirm: ()=>{
                 if(nameInput.value.trim()) {
-                    view.postMessage({
-                        "event": "start-mp",
-                        "data": {
-                            name: nameInput.value,
-                            id: idInput.value
-                        }
+                    let message = new Message(0, "game-host", {
+                        "name": nameInput.value.trim(),
+                        "id": this._id
                     });
-                    this.remove();
+                    this._view.postMessage(message);
+                    this._dialog.remove();
                 }
             }
         };
@@ -152,14 +152,10 @@ export default class extends ObjectView {
             },
             confirm: function() {
                 if(nameInput.value.trim() && hostInput.value.trim()) {
-                    view.postMessage({
-                        "event": "start-mp",
-                        "data": {
-                            name: nameInput.value,
-                            hostId: hostInput.value,
-                            id: idInput.value
-                        }
-                    });
+                    view.postMessage(new Message(0, "game-join", {
+                        name: nameInput.value,
+                        hostId: hostInput.value
+                    }));
                     this.remove();
                 }
             }
